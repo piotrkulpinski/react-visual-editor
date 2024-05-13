@@ -1,0 +1,20 @@
+{
+  "name": "react-visual-editor-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"cd packages/react-visual-editor && bun dev\" \"cd packages/demo && bun dev\"",
+    "lint": "bun biome lint --apply .",
+    "check": "bun biome check --apply .",
+    "format": "bun biome format --write .",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.7.1",
+    "concurrently": "^8.2.2"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}

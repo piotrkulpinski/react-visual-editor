@@ -1,0 +1,17 @@
+# Environment Variables
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# OS or Editor folders
+.DS_Store
+._*
+Desktop.ini
+Thumbs.db
+.vscode
+
+# node
+node_modules
+npm-debug.log
