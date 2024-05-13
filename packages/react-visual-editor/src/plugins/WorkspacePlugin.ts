@@ -8,13 +8,12 @@ const WorkspacePlugin = registerPlugin({
   },
 
   actions: {
-    zoomIn: () => {
-      const { left, top } = canvas.getCenter()
-      let zoomRatio = canvas.getZoom()
-      zoomRatio += 0.05
-
-      canvas.zoomToPoint(new fabric.Point(left, top), zoomRatio)
-    },
+    // zoomIn: () => {
+    //   const { left, top } = canvas.getCenter()
+    //   let zoomRatio = canvas.getZoom()
+    //   zoomRatio += 0.05
+    //   canvas.zoomToPoint(new fabric.Point(left, top), zoomRatio)
+    // },
   },
 })
 

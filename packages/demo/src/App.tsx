@@ -1,4 +1,5 @@
 import { ScreenSize, Wrapper } from "@curiousleaf/design"
+import { Editor } from "react-visual-editor"
 import { CanvasBottomNav } from "./components/CanvasBottomNav"
 import { CanvasTopNav } from "./components/CanvasTopNav"
 import { Nav } from "./components/Nav"
@@ -14,11 +15,7 @@ function App() {
 
       <div className="sticky inset-y-0 h-screen flex flex-col flex-1 pt-12 bg-radial bg-[length:15px_15px] bg-center">
         <CanvasTopNav />
-
-        <div id="workspace" className="flex-1">
-          <canvas id="canvas" />
-        </div>
-
+        <Editor className="flex-1" />
         <CanvasBottomNav />
       </div>
 
