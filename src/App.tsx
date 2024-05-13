@@ -1,5 +1,5 @@
 import { ScreenSize, Wrapper } from "@curiousleaf/design"
-import { Editor } from "react-visual-editor"
+import { Editor } from "../lib/components/Editor"
 import { CanvasBottomNav } from "./components/CanvasBottomNav"
 import { CanvasTopNav } from "./components/CanvasTopNav"
 import { Nav } from "./components/Nav"

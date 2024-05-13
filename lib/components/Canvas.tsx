@@ -1,7 +1,7 @@
 import * as fabric from "fabric"
 import { type HTMLAttributes, forwardRef, useEffect, useRef } from "react"
 
-const DEV_MODE = process.env.NODE_ENV === "development"
+const DEV_MODE = import.meta.env.NODE_ENV === "development"
 
 declare global {
   var canvas: fabric.Canvas | undefined

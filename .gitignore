@@ -12,6 +12,9 @@ Desktop.ini
 Thumbs.db
 .vscode
 
+# Build
+dist
+
 # node
 node_modules
 npm-debug.log

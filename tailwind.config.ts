@@ -9,7 +9,7 @@ export default {
     "./src/**/*.{ts,tsx}",
 
     // Design components inside @curiousleaf scope
-    "../../node_modules/@curiousleaf/*/src/**/*.{js,jsx,ts,tsx}",
+    "node_modules/@curiousleaf/*/src/**/*.{js,jsx,ts,tsx}",
   ],
 
   theme: {

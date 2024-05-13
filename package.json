@@ -1,18 +1,49 @@
 {
-  "name": "react-visual-editor-monorepo",
+  "name": "react-visual-editor",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
+  "type": "module",
+  "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
+  "files": ["dist"],
   "scripts": {
-    "dev": "concurrently \"cd packages/react-visual-editor && bun dev\" \"cd packages/demo && bun dev\"",
+    "dev": "vite",
+    "build": "tsc --p ./tsconfig.build.json && vite build",
     "lint": "bun biome lint --apply .",
     "check": "bun biome check --apply .",
     "format": "bun biome format --write .",
     "test": "vitest run",
     "test:watch": "vitest"
   },
+  "dependencies": {
+    "@curiousleaf/composer": "link:@curiousleaf/composer",
+    "@curiousleaf/design": "link:@curiousleaf/design",
+    "@curiousleaf/utils": "link:@curiousleaf/utils",
+    "@tabler/icons-react": "^3.3.0",
+    "fabric": "^6.0.0-rc1",
+    "radash": "^12.1.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "zustand": "^4.5.2"
+  },
   "devDependencies": {
     "@biomejs/biome": "^1.7.1",
-    "concurrently": "^8.2.2"
+    "@types/node": "^20.12.11",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.19",
+    "glob": "^10.3.10",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.11",
+    "vite-plugin-dts": "^3.7.3",
+    "vite-plugin-lib-inject-css": "^2.0.1"
   },
-  "workspaces": ["packages/*"]
+  "peerDependencies": {
+    "fabric": "^6.0.0-rc1",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  }
 }
