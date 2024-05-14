@@ -7,6 +7,7 @@ import {
   IconHandStop,
   IconPointer,
   IconRuler,
+  IconShape,
 } from "@tabler/icons-react"
 import { CanvasButton } from "./CanvasButton"
 
@@ -14,6 +15,14 @@ export const CanvasTopNav = () => {
   return (
     <div className="flex items-center h-10 shrink-0 w-full px-4 bg-white border-b">
       <div className="flex items-center divide-x -mx-3">
+        <div className="flex items-center gap-0.5 px-3 h-4">
+          <CanvasButton
+            tooltip="Add Rectangle"
+            prefix={<IconShape />}
+            // onClick={() => editor.addRectangle()}
+          />
+        </div>
+
         <div className="flex items-center gap-0.5 px-3 h-4">
           <CanvasButton tooltip="Undo" prefix={<IconArrowBackUp />} />
           <CanvasButton tooltip="Redo" prefix={<IconArrowForwardUp />} />
