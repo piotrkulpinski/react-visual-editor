@@ -1,4 +1,4 @@
-import { Button, ButtonGroup, Tooltip } from "@curiousleaf/design"
+import { Button, ButtonGroup, Tooltip, cx } from "@curiousleaf/design"
 import {
   IconArrowBackUp,
   IconArrowForwardUp,
@@ -9,11 +9,18 @@ import {
   IconRuler,
   IconShape,
 } from "@tabler/icons-react"
+import type { HTMLAttributes } from "react"
 import { CanvasButton } from "./CanvasButton"
 
-export const CanvasTopNav = () => {
+export const CanvasTopNav = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
   return (
-    <div className="flex items-center h-10 shrink-0 w-full px-4 bg-white border-b">
+    <div
+      className={cx(
+        "relative z-10 flex items-center h-10 shrink-0 px-4 bg-white shadow-outline",
+        className,
+      )}
+      {...props}
+    >
       <div className="flex items-center divide-x -mx-3">
         <div className="flex items-center gap-0.5 px-3 h-4">
           <CanvasButton

@@ -1,5 +1,5 @@
 import { fabric } from "fabric"
-import { throttle } from "radash"
+import { debounce } from "radash"
 import type Editor from "../Editor"
 
 type WorkspaceOptions = {
@@ -15,10 +15,10 @@ class WorkspacePlugin {
 
   static pluginName = "WorkspacePlugin"
   static events = ["sizeChange", "zoomChange"]
-  static apis = ["setSize", "setZoom", "zoomIn", "zoomOut", "zoomToFit", "getWorkspace"]
+  static apis = ["setSize", "setZoom", "zoomIn", "zoomOut", "zoomToFit"]
 
   options!: WorkspaceOptions
-  workspace: fabric.Rect | undefined
+  workspace!: fabric.Rect
   workspaceId = "workspace"
 
   // Add min and max zoom level variables
@@ -51,13 +51,11 @@ class WorkspacePlugin {
 
   hookImportAfter() {
     return new Promise(resolve => {
-      const workspace = this.getWorkspace()
-
-      if (workspace) {
-        workspace.set("selectable", false)
-        workspace.set("hasControls", false)
-        this.setSize(workspace.width ?? 0, workspace.height ?? 0)
-        this.editor.emit("sizeChange", workspace.width, workspace.height)
+      if (this.workspace) {
+        this.workspace.set("selectable", false)
+        this.workspace.set("hasControls", false)
+        this.setSize(this.workspace.width ?? 0, this.workspace.height ?? 0)
+        this.editor.emit("sizeChange", this.workspace.width, this.workspace.height)
       }
 
       resolve("")
@@ -79,7 +77,7 @@ class WorkspacePlugin {
     })
   }
 
-  // Initialize canvas
+  // Initialize workspace
   _initWorkspace() {
     const { width, height, backgroundColor: fill } = this.options
     const workspace = new fabric.Rect({ id: this.workspaceId, width, height, fill })
@@ -92,6 +90,12 @@ class WorkspacePlugin {
     this.canvas.renderAll()
     this.workspace = workspace
 
+    // Do not display beyond the canvas
+    this.workspace.clone((cloned: fabric.Rect) => {
+      this.canvas.clipPath = cloned
+      this.canvas.requestRenderAll()
+    })
+
     if (this.canvas.clearHistory) {
       this.canvas.clearHistory()
     }
@@ -101,7 +105,9 @@ class WorkspacePlugin {
 
   // Initialize listeners
   _initResizeObserve() {
-    const resizeObserver = new ResizeObserver(throttle({ interval: 50 }, this.zoomToFit.bind(this)))
+    const resizeObserver = new ResizeObserver(
+      debounce({ delay: 25 }, this._resizeCanvas.bind(this)),
+    )
 
     resizeObserver.observe(this.options.workspaceEl)
   }
@@ -112,28 +118,32 @@ class WorkspacePlugin {
     this.options.height = height
 
     // Reset workspace
-    this.workspace = this.getWorkspace()
+    // this.workspace = this.getWorkspace()
     this.workspace?.set("width", width)
     this.workspace?.set("height", height)
     this.editor.emit("sizeChange", width, height)
     this.zoomToFit()
   }
 
-  _getScale() {
-    const workspace = this.getWorkspace()
-
-    if (!workspace) return
-
+  _resizeCanvas() {
     const { offsetWidth, offsetHeight } = this.options.workspaceEl
 
-    // FIXME: findScaleToFit is not exported
-    return (fabric.util as any).findScaleToFit(workspace, {
-      width: offsetWidth,
-      height: offsetHeight,
-    }) as number
+    // Sometimes the canvas is not ready when the resize event is triggered
+    if (!this.canvas.lowerCanvasEl) return
+
+    this.canvas.setDimensions({ width: offsetWidth, height: offsetHeight })
+    this.canvas.setViewportTransform(fabric.iMatrix.concat())
+
+    // Zoom the canvas
+    this.zoomToFit()
   }
 
-  _bindWheel() {}
+  _getScale() {
+    const { offsetWidth: width, offsetHeight: height } = this.options.workspaceEl
+
+    // FIXME: findScaleToFit is not exported
+    return (fabric.util as any).findScaleToFit(this.workspace, { width, height }) as number
+  }
 
   // Center the canvas on the center point of the specified object
   _setCenterFromObject(object?: fabric.Object) {
@@ -151,24 +161,6 @@ class WorkspacePlugin {
     this.canvas.setViewportTransform(viewportTransform)
     this.canvas.renderAll()
   }
-
-  // _setZoomAuto(zoom: number, callback?: (left?: number, top?: number) => void) {
-  //   const { offsetWidth, offsetHeight } = this.options.workspaceEl
-
-  //   this.canvas.setDimensions({ width: offsetWidth, height: offsetHeight })
-  //   this.canvas.setViewportTransform(fabric.iMatrix.concat())
-
-  //   // Zoom the cancas
-  //   this.setZoom(zoom)
-
-  //   // Do not display beyond the canvas
-  //   this.workspace.clone((cloned: fabric.Rect) => {
-  //     this.canvas.clipPath = cloned
-  //     this.canvas.requestRenderAll()
-  //   })
-
-  //   callback?.(this.workspace.left, this.workspace.top)
-  // }
 
   // Find the nearest zoom level
   _findNearestZoomLevel(dir: "up" | "down") {
@@ -220,12 +212,7 @@ class WorkspacePlugin {
   // Zoom to fit
   zoomToFit() {
     const zoom = this._getScale()
-    zoom && this.setZoom(zoom * this.zoomRatio)
-  }
-
-  // Retrieve the workspace object
-  getWorkspace() {
-    return this.canvas.getObjects().find(({ id }) => id === this.workspaceId)
+    this.setZoom(zoom * this.zoomRatio)
   }
 }
 

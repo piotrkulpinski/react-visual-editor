@@ -8,6 +8,9 @@ import { libInjectCss } from "vite-plugin-lib-inject-css"
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  server: {
+    port: 5183,
+  },
   plugins: [react(), libInjectCss(), dts({ include: ["lib"] })],
   build: {
     copyPublicDir: false,

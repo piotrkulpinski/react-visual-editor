@@ -1,9 +1,9 @@
-import { Button, ButtonGroup, Dropdown, MenuItem, Tooltip } from "@curiousleaf/design"
+import { Button, ButtonGroup, Dropdown, MenuItem, Tooltip, cx } from "@curiousleaf/design"
 import { IconMaximize, IconMinus, IconPlus } from "@tabler/icons-react"
-import { useState } from "react"
+import { type HTMLAttributes, useState } from "react"
 import { useEditor } from "../providers/EditorProvider"
 
-export const CanvasBottomNav = () => {
+export const CanvasBottomNav = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
   const { editor } = useEditor()
   const [zoomLevel, setZoomLevel] = useState(1)
   const zoomLevels = [0.25, 0.5, 0.75, 1, 1.5, 2, 4]
@@ -11,7 +11,7 @@ export const CanvasBottomNav = () => {
   editor.on("zoomChange", setZoomLevel)
 
   return (
-    <div className="absolute bottom-4 right-4 flex items-center gap-2">
+    <div className={cx("absolute bottom-4 right-4 flex items-center gap-2", className)} {...props}>
       <Tooltip tooltip="Zoom to Fit">
         <Button
           size="sm"

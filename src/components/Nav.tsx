@@ -5,7 +5,7 @@ export const Nav = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => 
   return (
     <div
       className={cx(
-        "sticky top-0 z-30 flex items-center gap-3 h-12 w-full border-b bg-white px-4 md:gap-4",
+        "flex items-center gap-3 shrink-0 h-12 w-full border-b bg-white px-4 md:gap-4",
         className,
       )}
       {...props}

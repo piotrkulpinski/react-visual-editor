@@ -1,4 +1,5 @@
 import EventEmitter from "events"
+import type { ICanvasOptions } from "fabric/fabric-impl"
 import hotkeys from "hotkeys-js"
 import { AsyncSeriesHook } from "tapable"
 import ServersPlugin from "./plugin/ServersPlugin"
@@ -9,10 +10,13 @@ class Editor extends EventEmitter {
   private pluginMap: {
     [propName: string]: IPluginTempl
   } = {}
+
   // Custom Events
   private customEvents: string[] = []
+
   // Custom API
   private customApis: string[] = []
+
   // Lifecycle function names
   private hooks: IEditorHooksType[] = [
     "hookImportBefore",
@@ -21,12 +25,22 @@ class Editor extends EventEmitter {
     "hookSaveAfter",
   ]
 
+  // Default canvas options
+  private canvasOptions: ICanvasOptions = {
+    fireRightClick: true,
+    stopContextMenu: true,
+    controlsAboveOverlay: true,
+    imageSmoothingEnabled: false,
+    preserveObjectStacking: true,
+  }
+
   public hooksEntity: {
     [propName: string]: AsyncSeriesHook<any, any>
   } = {}
 
-  init(canvas: fabric.Canvas) {
-    this.canvas = canvas
+  init(element: HTMLCanvasElement | string | null, options?: ICanvasOptions) {
+    this.canvas = new fabric.Canvas(element, Object.assign({}, options, this.canvasOptions))
+
     this._initActionHooks()
     this._initServersPlugin()
   }

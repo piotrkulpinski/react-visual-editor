@@ -1,4 +1,3 @@
-import { ScreenSize, Wrapper } from "@curiousleaf/design"
 import { useEffect, useMemo, useRef } from "react"
 import Editor, { RulerPlugin, WorkspacePlugin } from "../lib"
 import { CanvasBottomNav } from "./components/CanvasBottomNav"
@@ -13,32 +12,24 @@ function App() {
   const editor = useMemo(() => new Editor(), [])
 
   useEffect(() => {
-    const canvas = new fabric.Canvas("canvas", {
+    // Initialize the editor
+    editor.init("canvas", {
       width: workspaceRef.current?.clientWidth ?? 0,
       height: workspaceRef.current?.clientHeight ?? 0,
-
-      // Options
-      fireRightClick: true,
-      stopContextMenu: true,
-      controlsAboveOverlay: true,
-      imageSmoothingEnabled: false,
-      preserveObjectStacking: true,
 
       // Styling
       selectionBorderColor: "transparent",
       selectionColor: "rgb(178,204,255,0.5)",
     })
 
-    // Initialize the editor
-    editor.init(canvas)
-
     // Plugins
     editor.use(WorkspacePlugin, {
       workspaceEl: workspaceRef.current,
       width: 1000,
       height: 1000,
-      backgroundColor: "#fff",
+      backgroundColor: "#B1B6A6",
     })
+
     editor.use(RulerPlugin)
     // editor.use(DragingPlugin)
     // editor.use(AlignGuidLinePlugin)
@@ -62,22 +53,25 @@ function App() {
 
   return (
     <EditorProvider fabric={fabric} editor={editor}>
-      <Wrapper className="bg-gray-50 flex-wrap">
+      <div className="flex flex-col h-dvh bg-gray-50">
         <Nav />
 
-        <SidebarLeft />
+        <div className="flex h-[calc(100%-48px)] bg-radial bg-[length:15px_15px] bg-center">
+          <SidebarLeft />
 
-        <div className="sticky inset-y-0 h-dvh flex-1 pt-12 bg-radial bg-[length:15px_15px] bg-center">
-          <CanvasTopNav />
-          <div ref={workspaceRef} className="w-full h-[calc(100%-40px+1px)]">
-            <canvas id="canvas" />
+          <div className="relative flex flex-col flex-1 w-full overflow-clip">
+            <CanvasTopNav />
+
+            <div ref={workspaceRef} className="h-[calc(100%-40px)]">
+              <canvas id="canvas" />
+            </div>
+
+            <CanvasBottomNav />
           </div>
-          <CanvasBottomNav />
-        </div>
 
-        <SidebarRight />
-        <ScreenSize />
-      </Wrapper>
+          <SidebarRight />
+        </div>
+      </div>
     </EditorProvider>
   )
 }

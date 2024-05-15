@@ -1,11 +1,8 @@
-import { Sidebar } from "@curiousleaf/design"
+import { Sidebar } from "./Sidebar"
 
 export const SidebarRight = () => {
   return (
-    <Sidebar
-      className="gap-0 p-0 pt-12 bg-white shadow-outline divide-y overflow-y-auto overscroll-contain"
-      sticky
-    >
+    <Sidebar>
       <div className="p-4 text-sm/none">Right Sidebar</div>
     </Sidebar>
   )
