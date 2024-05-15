@@ -1,6 +1,6 @@
 import { fabric } from "fabric"
+import type { IEvent } from "fabric/fabric-impl"
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Canvas, IEvent, Point } from "fabric/fabric-impl"
 import { throttle } from "radash"
 import { setupGuideLine } from "./guideline"
 import { drawLine, drawMask, drawRect, drawText, getGap, mergeLines } from "./utils"
@@ -9,11 +9,6 @@ import { drawLine, drawMask, drawRect, drawText, getGap, mergeLines } from "./ut
  * Configuration
  */
 export interface RulerOptions {
-  /**
-   * Canvas
-   */
-  canvas: Canvas
-
   /**
    * Ruler Width and Height
    * @default 20
@@ -73,6 +68,11 @@ class CanvasRuler {
   protected ctx: CanvasRenderingContext2D
 
   /**
+   * Canvas
+   */
+  public canvas: fabric.Canvas
+
+  /**
    * Setup
    */
   public options: Required<RulerOptions>
@@ -80,7 +80,7 @@ class CanvasRuler {
   /**
    * Starting point of the ruler
    */
-  public startCalibration: undefined | Point
+  public startCalibration: undefined | fabric.Point
 
   private activeOn: "down" | "up" = "up"
 
@@ -123,7 +123,9 @@ class CanvasRuler {
 
   private tempGuidelLine: fabric.GuideLine | undefined
 
-  constructor(_options: RulerOptions) {
+  constructor(canvas: fabric.Canvas, options?: RulerOptions) {
+    this.canvas = canvas
+
     // Merge default configurations
     this.options = Object.assign(
       {
@@ -136,12 +138,12 @@ class CanvasRuler {
         textColor: "#888888",
         scaleColor: "#D4D4D4",
       },
-      _options,
+      options,
     )
 
-    this.ctx = this.options.canvas.getContext()
+    this.ctx = this.canvas.getContext()
 
-    fabric.util.object.extend(this.options.canvas, {
+    fabric.util.object.extend(this.canvas, {
       ruler: this,
     })
 
@@ -161,29 +163,29 @@ class CanvasRuler {
    * Remove all guides
    */
   public clearGuideline() {
-    this.options.canvas.remove(...this.options.canvas.getObjects(fabric.GuideLine.prototype.type))
+    this.canvas.remove(...this.canvas.getObjects(fabric.GuideLine.prototype.type))
   }
 
   /**
    * Show all guides
    */
   public showGuideline() {
-    for (const obj of this.options.canvas.getObjects(fabric.GuideLine.prototype.type)) {
+    for (const obj of this.canvas.getObjects(fabric.GuideLine.prototype.type)) {
       obj.set("visible", true)
     }
 
-    this.options.canvas.renderAll()
+    this.canvas.renderAll()
   }
 
   /**
    * Hide all guides
    */
   public hideGuideline() {
-    for (const obj of this.options.canvas.getObjects(fabric.GuideLine.prototype.type)) {
+    for (const obj of this.canvas.getObjects(fabric.GuideLine.prototype.type)) {
       obj.set("visible", false)
     }
 
-    this.options.canvas.renderAll()
+    this.canvas.renderAll()
   }
 
   /**
@@ -193,12 +195,12 @@ class CanvasRuler {
     this.options.enabled = true
 
     // Bind events
-    this.options.canvas.on("after:render", this.eventHandler.calcObjectRect)
-    this.options.canvas.on("after:render", this.eventHandler.render)
-    this.options.canvas.on("mouse:down", this.eventHandler.canvasMouseDown)
-    this.options.canvas.on("mouse:move", this.eventHandler.canvasMouseMove)
-    this.options.canvas.on("mouse:up", this.eventHandler.canvasMouseUp)
-    this.options.canvas.on("selection:cleared", this.eventHandler.clearStatus)
+    this.canvas.on("after:render", this.eventHandler.calcObjectRect)
+    this.canvas.on("after:render", this.eventHandler.render)
+    this.canvas.on("mouse:down", this.eventHandler.canvasMouseDown)
+    this.canvas.on("mouse:move", this.eventHandler.canvasMouseMove)
+    this.canvas.on("mouse:up", this.eventHandler.canvasMouseUp)
+    this.canvas.on("selection:cleared", this.eventHandler.clearStatus)
 
     // Show guides
     this.showGuideline()
@@ -214,12 +216,12 @@ class CanvasRuler {
     this.options.enabled = false
 
     // Remove events
-    this.options.canvas.off("after:render", this.eventHandler.calcObjectRect)
-    this.options.canvas.off("after:render", this.eventHandler.render)
-    this.options.canvas.off("mouse:down", this.eventHandler.canvasMouseDown as any)
-    this.options.canvas.off("mouse:move", this.eventHandler.canvasMouseMove as any)
-    this.options.canvas.off("mouse:up", this.eventHandler.canvasMouseUp as any)
-    this.options.canvas.off("selection:cleared", this.eventHandler.clearStatus)
+    this.canvas.off("after:render", this.eventHandler.calcObjectRect)
+    this.canvas.off("after:render", this.eventHandler.render)
+    this.canvas.off("mouse:down", this.eventHandler.canvasMouseDown as any)
+    this.canvas.off("mouse:move", this.eventHandler.canvasMouseMove as any)
+    this.canvas.off("mouse:up", this.eventHandler.canvasMouseUp as any)
+    this.canvas.off("selection:cleared", this.eventHandler.clearStatus)
 
     // Hide guides
     this.hideGuideline()
@@ -236,9 +238,9 @@ class CanvasRuler {
    * Draw
    */
   public render() {
-    const { ruleSize, backgroundColor, enabled, canvas } = this.options
+    const { ruleSize, backgroundColor, enabled } = this.options
 
-    const vpt = canvas.viewportTransform
+    const vpt = this.canvas.viewportTransform
     if (!vpt || !enabled) return
 
     // Horizontal ruler
@@ -280,13 +282,13 @@ class CanvasRuler {
    */
   private getSize() {
     return {
-      width: this.options.canvas.width ?? 0,
-      height: this.options.canvas.height ?? 0,
+      width: this.canvas.width ?? 0,
+      height: this.canvas.height ?? 0,
     }
   }
 
   private getZoom() {
-    return this.options.canvas.getZoom()
+    return this.canvas.getZoom()
   }
 
   private draw(opt: { isHorizontal: boolean; rulerLength: number; startCalibration: number }) {
@@ -454,7 +456,7 @@ class CanvasRuler {
   // private calcCalibration() {
   //   if (this.startCalibration) return;
   //   // console.log('calcCalibration');
-  //   const workspace = this.options.canvas.getObjects().find((item: any) => {
+  //   const workspace = this.canvas.getObjects().find((item: any) => {
   //     return item.id === 'workspace';
   //   });
   //   if (!workspace) return;
@@ -463,7 +465,7 @@ class CanvasRuler {
   // }
 
   private calcObjectRect() {
-    const activeObjects = this.options.canvas.getActiveObjects()
+    const activeObjects = this.canvas.getActiveObjects()
     if (activeObjects.length === 0) return
     const allRect = activeObjects.reduce((rects, obj) => {
       const rect: HighlightRect = obj.getBoundingRect(false, true)
@@ -514,13 +516,13 @@ class CanvasRuler {
    * @param point
    * @returns "vertical" | "horizontal" | false
    */
-  public isPointOnRuler(point: Point) {
+  public isPointOnRuler(point: fabric.Point) {
     if (
       new fabric.Rect({
         left: 0,
         top: 0,
         width: this.options.ruleSize,
-        height: this.options.canvas.height,
+        height: this.canvas.height,
       }).containsPoint(point)
     ) {
       return "vertical"
@@ -530,7 +532,7 @@ class CanvasRuler {
       new fabric.Rect({
         left: 0,
         top: 0,
-        width: this.options.canvas.width,
+        width: this.canvas.width,
         height: this.options.ruleSize,
       }).containsPoint(point)
     ) {
@@ -545,8 +547,8 @@ class CanvasRuler {
     const hoveredRuler = this.isPointOnRuler(e.pointer)
     if (hoveredRuler && this.activeOn === "up") {
       // Backup properties
-      this.lastAttr.selection = this.options.canvas.selection
-      this.options.canvas.selection = false
+      this.lastAttr.selection = this.canvas.selection
+      this.canvas.selection = false
       this.activeOn = "down"
 
       this.tempGuidelLine = new fabric.GuideLine(
@@ -557,10 +559,10 @@ class CanvasRuler {
         },
       )
 
-      this.options.canvas.add(this.tempGuidelLine)
-      this.options.canvas.setActiveObject(this.tempGuidelLine)
+      this.canvas.add(this.tempGuidelLine)
+      this.canvas.setActiveObject(this.tempGuidelLine)
 
-      this.options.canvas._setupCurrentTransform(e.e, this.tempGuidelLine, true)
+      this.canvas._setupCurrentTransform(e.e, this.tempGuidelLine, true)
 
       this.tempGuidelLine.fire("down", this.getCommonEventInfo(e))
     }
@@ -591,10 +593,10 @@ class CanvasRuler {
       }
       this.tempGuidelLine.set({ ...pos, visible: true })
 
-      this.options.canvas.requestRenderAll()
+      this.canvas.requestRenderAll()
 
       const event = this.getCommonEventInfo(e)
-      this.options.canvas.fire("object:moving", event)
+      this.canvas.fire("object:moving", event)
       this.tempGuidelLine.fire("moving", event)
     }
 
@@ -603,20 +605,20 @@ class CanvasRuler {
       // Mouse exit from inside
       if (this.lastAttr.status !== "out") {
         // Change mouse cursor
-        this.options.canvas.defaultCursor = this.lastAttr.cursor
+        this.canvas.defaultCursor = this.lastAttr.cursor
         this.lastAttr.status = "out"
       }
       return
     }
-    // const activeObjects = this.options.canvas.getActiveObjects();
+    // const activeObjects = this.canvas.getActiveObjects();
     // if (activeObjects.length === 1 && activeObjects[0] instanceof fabric.GuideLine) {
     //   return;
     // }
     // Mouse enter from outside or on the other side of the ruler
     if (this.lastAttr.status === "out" || hoveredRuler !== this.lastAttr.status) {
       // Change mouse cursor
-      this.lastAttr.cursor = this.options.canvas.defaultCursor
-      this.options.canvas.defaultCursor = hoveredRuler === "horizontal" ? "ns-resize" : "ew-resize"
+      this.lastAttr.cursor = this.canvas.defaultCursor
+      this.canvas.defaultCursor = hoveredRuler === "horizontal" ? "ns-resize" : "ew-resize"
       this.lastAttr.status = hoveredRuler
     }
   }
@@ -625,7 +627,7 @@ class CanvasRuler {
     if (this.activeOn !== "down") return
 
     // Restore properties
-    this.options.canvas.selection = this.lastAttr.selection
+    this.canvas.selection = this.lastAttr.selection
     this.activeOn = "up"
 
     this.tempGuidelLine?.fire("up", this.getCommonEventInfo(e))

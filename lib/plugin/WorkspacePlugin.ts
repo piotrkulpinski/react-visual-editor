@@ -18,8 +18,7 @@ class WorkspacePlugin extends EditorPlugin<WorkspaceOptions> {
   static events = ["sizeChange", "zoomChange"]
   static apis = ["setSize", "setZoom", "zoomIn", "zoomOut", "zoomToFit"]
 
-  workspace!: fabric.Rect
-  workspaceId = "workspace"
+  private workspaceId = "workspace"
 
   // Add min and max zoom level variables
   private zoomRatio = 0.8
@@ -49,11 +48,11 @@ class WorkspacePlugin extends EditorPlugin<WorkspaceOptions> {
 
   hookImportAfter() {
     return new Promise(resolve => {
-      if (this.workspace) {
-        this.workspace.set("selectable", false)
-        this.workspace.set("hasControls", false)
-        this.setSize(this.workspace.width ?? 0, this.workspace.height ?? 0)
-        this.editor.emit("sizeChange", this.workspace.width, this.workspace.height)
+      if (this.editor.workspace) {
+        this.editor.workspace.set("selectable", false)
+        this.editor.workspace.set("hasControls", false)
+        this.setSize(this.editor.workspace.width ?? 0, this.editor.workspace.height ?? 0)
+        this.editor.emit("sizeChange", this.editor.workspace.width, this.editor.workspace.height)
       }
 
       resolve("")
@@ -86,13 +85,13 @@ class WorkspacePlugin extends EditorPlugin<WorkspaceOptions> {
 
     this.canvas.add(workspace)
     this.canvas.renderAll()
-    this.workspace = workspace
+    this.editor.workspace = workspace
 
     // Do not display beyond the canvas
-    this.workspace.clone((cloned: fabric.Rect) => {
-      this.canvas.clipPath = cloned
-      this.canvas.requestRenderAll()
-    })
+    // this.editor.workspace.clone((cloned: fabric.Rect) => {
+    //   this.canvas.clipPath = cloned
+    //   this.canvas.requestRenderAll()
+    // })
 
     if (this.canvas.clearHistory) {
       this.canvas.clearHistory()
@@ -116,9 +115,8 @@ class WorkspacePlugin extends EditorPlugin<WorkspaceOptions> {
     this.options.height = height
 
     // Reset workspace
-    // this.workspace = this.getWorkspace()
-    this.workspace?.set("width", width)
-    this.workspace?.set("height", height)
+    this.editor.workspace.set("width", width)
+    this.editor.workspace.set("height", height)
     this.editor.emit("sizeChange", width, height)
     this.zoomToFit()
   }
@@ -140,7 +138,7 @@ class WorkspacePlugin extends EditorPlugin<WorkspaceOptions> {
     const { offsetWidth: width, offsetHeight: height } = this.options.workspaceEl
 
     // FIXME: findScaleToFit is not exported
-    return (fabric.util as any).findScaleToFit(this.workspace, { width, height }) as number
+    return (fabric.util as any).findScaleToFit(this.editor.workspace, { width, height }) as number
   }
 
   // Center the canvas on the center point of the specified object
@@ -188,7 +186,7 @@ class WorkspacePlugin extends EditorPlugin<WorkspaceOptions> {
       this.canvas.zoomToPoint(new fabric.Point(coords[0], coords[1]), normalizedZoom)
     } else {
       this.canvas.setZoom(normalizedZoom)
-      this._setCenterFromObject(this.workspace)
+      this._setCenterFromObject(this.editor.workspace)
     }
 
     // Emit the zoom event

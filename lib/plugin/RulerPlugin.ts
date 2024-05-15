@@ -1,12 +1,10 @@
 import type { fabric } from "fabric"
 import type Editor from "../Editor"
 import EditorPlugin from "../EditorPlugin"
-import initRuler from "../ruler"
-import type CanvasRuler from "../ruler/ruler"
+import CanvasRuler from "../ruler/ruler"
 
 class RulerPlugin extends EditorPlugin {
   static pluginName = "RulerPlugin"
-  static events = []
   static apis = [
     "hideGuideline",
     "showGuideline",
@@ -38,7 +36,20 @@ class RulerPlugin extends EditorPlugin {
   }
 
   init() {
-    this.ruler = initRuler(this.canvas)
+    this.ruler = new CanvasRuler(this.canvas)
+
+    this.canvas.on("guideline:moving", ({ target }) => {
+      if (this.isRectOut(this.editor.workspace, target)) {
+        target.moveCursor = "not-allowed"
+      }
+    })
+
+    this.canvas.on("guideline:mouseup", ({ target }) => {
+      if (this.isRectOut(this.editor.workspace, target)) {
+        this.canvas.remove(target)
+        this.canvas.setCursor(this.canvas.defaultCursor ?? "default")
+      }
+    })
   }
 
   hideGuideline() {
@@ -63,6 +74,27 @@ class RulerPlugin extends EditorPlugin {
 
   isRulerEnabled() {
     return this.ruler?.options.enabled ?? false
+  }
+
+  /**
+   * Check if the target is outside the object rectangle
+   * @param object
+   * @param target
+   * @returns
+   */
+  isRectOut({ top, height, left, width }: fabric.Object, target: fabric.GuideLine): boolean {
+    const targetRect = target.getBoundingRect(true, true)
+
+    if (top === undefined || height === undefined || left === undefined || width === undefined) {
+      return false
+    }
+
+    if (target.isHorizontal()) {
+      console.log(targetRect)
+      return top > targetRect.top + 1 || top + height < targetRect.top + targetRect.height - 1
+    }
+
+    return left > targetRect.left + 1 || left + width < targetRect.left + targetRect.width - 1
   }
 }
 
