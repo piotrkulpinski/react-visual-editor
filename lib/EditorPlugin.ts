@@ -8,27 +8,19 @@ export type ContextMenuItem = null | {
   subitems?: ContextMenuItem[]
 }
 
-class EditorPlugin {
+class EditorPlugin<T = IPluginOptions> implements IPluginTempl {
   public canvas: fabric.Canvas
   public editor: Editor
-  public defautOptions = {
-    color: "red",
-    size: 0.5,
-  }
+  public options: T
   public pluginName = "textPlugin"
   public events = ["textEvent1", "textEvent2"]
   public apis = ["textAPI1", "textAPI2"]
   public hotkeys: string[] = ["ctrl+v", "ctrl+a"]
 
-  constructor(canvas: fabric.Canvas, editor: Editor, options = {}) {
+  constructor(canvas: fabric.Canvas, editor: Editor, options: T = {} as T) {
     this.canvas = canvas
     this.editor = editor
-    this.defautOptions = { ...this.defautOptions, ...options }
-    this.init()
-  }
-
-  init() {
-    console.log("pluginInit", this.canvas, this.editor, this.defautOptions)
+    this.options = options
   }
 
   destroy() {

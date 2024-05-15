@@ -1,4 +1,4 @@
-declare type IPluginOption = Record<string, unknown>
+declare type IPluginOptions = Record<string, unknown>
 
 // 生命周期事件类型
 declare type IEditorHooksType =
@@ -9,7 +9,7 @@ declare type IEditorHooksType =
 
 // 插件class
 declare interface IPluginClass extends IPluginTempl {
-  new (canvas: fabric.Canvas, editor: any, options?: IPluginOption)
+  new (canvas: fabric.Canvas, editor: any, options: any)
 }
 
 declare interface IPluginMenu {
@@ -24,7 +24,7 @@ declare interface IPluginTempl {
   events: string[]
   apis: string[]
   canvas?: fabric.Canvas | null | undefined
-  hotkeyEvent?: (name: string, e: Event) => void
+  hotkeyEvent?: (name: string, e: KeyboardEvent) => void
   [propName: IEditorHooksType]: () => void
   [propName: string]: any
 }

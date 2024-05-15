@@ -1,24 +1,11 @@
 import { fabric } from "fabric"
 import type Editor from "../Editor"
+import EditorPlugin from "../EditorPlugin"
 import { SelectEvent, SelectMode } from "../eventType"
-import { generateId } from "../utils/utils"
+import { generateId, transformText } from "../utils/utils"
 import { downFile } from "../utils/utils"
 
-function transformText(objects: (fabric.Object & { objects?: fabric.Object[] })[]) {
-  if (!objects) return
-
-  for (const item of objects) {
-    if (item.objects) {
-      transformText(item.objects)
-    } else if (item.type === "text") {
-      item.type = "textbox"
-    }
-  }
-}
-
-class ServersPlugin {
-  public canvas: fabric.Canvas
-  public editor: Editor
+class ServersPlugin extends EditorPlugin {
   public selectedMode: SelectMode
   static pluginName = "ServersPlugin"
   static apis = [
@@ -39,8 +26,7 @@ class ServersPlugin {
   // public hotkeys: string[] = ['left', 'right', 'down', 'up'];
 
   constructor(canvas: fabric.Canvas, editor: Editor) {
-    this.canvas = canvas
-    this.editor = editor
+    super(canvas, editor)
     this.selectedMode = SelectMode.EMPTY
     this._initSelectEvent()
   }

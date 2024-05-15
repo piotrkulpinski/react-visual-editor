@@ -1,11 +1,10 @@
 import type { fabric } from "fabric"
 import type Editor from "../Editor"
+import EditorPlugin from "../EditorPlugin"
 import initRuler from "../ruler"
 import type CanvasRuler from "../ruler/ruler"
 
-class RulerPlugin {
-  public canvas: fabric.Canvas
-  public editor: Editor
+class RulerPlugin extends EditorPlugin {
   static pluginName = "RulerPlugin"
   static events = []
   static apis = [
@@ -16,11 +15,11 @@ class RulerPlugin {
     "rulerDisable",
     "rulerToggle",
   ]
-  ruler: CanvasRuler | undefined
+
+  private ruler: CanvasRuler | undefined
 
   constructor(canvas: fabric.Canvas, editor: Editor) {
-    this.canvas = canvas
-    this.editor = editor
+    super(canvas, editor)
     this.init()
   }
 

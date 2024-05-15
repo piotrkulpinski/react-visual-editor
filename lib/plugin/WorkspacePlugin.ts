@@ -1,6 +1,7 @@
 import { fabric } from "fabric"
 import { debounce } from "radash"
 import type Editor from "../Editor"
+import EditorPlugin from "../EditorPlugin"
 
 type WorkspaceOptions = {
   workspaceEl: HTMLElement
@@ -9,15 +10,14 @@ type WorkspaceOptions = {
   backgroundColor: string
 }
 
-class WorkspacePlugin {
-  public canvas: fabric.Canvas
-  public editor: Editor
-
+/**
+ * Plugin for managing the workspace, including resizing, zooming, and centering.
+ */
+class WorkspacePlugin extends EditorPlugin<WorkspaceOptions> {
   static pluginName = "WorkspacePlugin"
   static events = ["sizeChange", "zoomChange"]
   static apis = ["setSize", "setZoom", "zoomIn", "zoomOut", "zoomToFit"]
 
-  options!: WorkspaceOptions
   workspace!: fabric.Rect
   workspaceId = "workspace"
 
@@ -28,9 +28,7 @@ class WorkspacePlugin {
   private zoomSteps = [0.05, 0.75, 0.125, 0.25, 0.5, 0.75, 1, 1.5, 2, 4, 8, 16]
 
   constructor(canvas: fabric.Canvas, editor: Editor, options: WorkspaceOptions) {
-    this.canvas = canvas
-    this.editor = editor
-    this.options = options
+    super(canvas, editor, options)
 
     this.init()
   }

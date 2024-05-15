@@ -46,11 +46,13 @@ class Editor extends EventEmitter {
   }
 
   // Import component
-  use(plugin: IPluginClass, options?: IPluginOption) {
+  use(plugin: IPluginClass, options?: IPluginOptions) {
     if (this._checkPlugin(plugin) && this.canvas) {
       this._saveCustomAttr(plugin)
       const pluginRunTime = new plugin(this.canvas, this, options || {}) as IPluginClass
       this.pluginMap[plugin.pluginName] = pluginRunTime
+
+      // Bind Hooks, Hotkeys, and APIs
       this._bindingHooks(pluginRunTime)
       this._bindingHotkeys(pluginRunTime)
       this._bindingApis(pluginRunTime)

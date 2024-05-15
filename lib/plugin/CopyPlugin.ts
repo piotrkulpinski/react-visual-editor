@@ -4,8 +4,6 @@ import EditorPlugin from "../EditorPlugin"
 import { generateId } from "../utils/utils"
 
 class CopyPlugin extends EditorPlugin {
-  public canvas: fabric.Canvas
-  public editor: Editor
   static pluginName = "CopyPlugin"
   static apis = ["clone"]
   public hotkeys: string[] = ["ctrl+v", "ctrl+c"]
@@ -13,8 +11,6 @@ class CopyPlugin extends EditorPlugin {
 
   constructor(canvas: fabric.Canvas, editor: Editor) {
     super(canvas, editor)
-    this.canvas = canvas
-    this.editor = editor
     this.cache = null
     this.initPaste()
   }

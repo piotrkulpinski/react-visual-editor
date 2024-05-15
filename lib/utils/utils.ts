@@ -8,6 +8,22 @@ export function generateId(prefix?: string, length = 21) {
 }
 
 /**
+ * Transform text objects to textbox objects.
+ * @param objects Array of fabric objects
+ */
+export const transformText = (objects: (fabric.Object & { objects?: fabric.Object[] })[]) => {
+  if (!objects) return
+
+  for (const item of objects) {
+    if (item.objects) {
+      transformText(item.objects)
+    } else if (item.type === "text") {
+      item.type = "textbox"
+    }
+  }
+}
+
+/**
  * @description: Create an image element
  * @param {String} str Image URL or base64 image
  * @return {Promise} element Image element
