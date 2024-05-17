@@ -56,26 +56,25 @@ class EventHandler {
    */
   public destroy = () => {
     this.handler.canvas.off({
-      "object:modified": this.modified,
-      "object:scaling": this.scaling,
-      "object:moving": this.moving,
-      "object:moved": this.moved,
-      "object:rotating": this.rotating,
+      // "object:modified": this.modified,
+      // "object:scaling": this.scaling,
+      // "object:moving": this.moving,
+      // "object:moved": this.moved,
+      // "object:rotating": this.rotating,
       "mouse:wheel": this.mousewheel,
       "mouse:down": this.mousedown,
       "mouse:move": this.mousemove,
       "mouse:up": this.mouseup,
-      "selection:cleared": this.selection,
-      "selection:created": this.selection,
-      "selection:updated": this.selection,
+      // "selection:cleared": this.selection,
+      // "selection:created": this.selection,
+      // "selection:updated": this.selection,
     })
 
     if (this.handler.canvas.wrapperEl) {
-      this.handler.canvas.wrapperEl.removeEventListener("keydown", this.keydown)
-      this.handler.canvas.wrapperEl.removeEventListener("keyup", this.keyup)
-      this.handler.canvas.wrapperEl.removeEventListener("mousedown", this.onmousedown)
-      this.handler.canvas.wrapperEl.removeEventListener("contextmenu", this.contextmenu)
-
+      // this.handler.canvas.wrapperEl.removeEventListener("keydown", this.keydown)
+      // this.handler.canvas.wrapperEl.removeEventListener("keyup", this.keyup)
+      // this.handler.canvas.wrapperEl.removeEventListener("mousedown", this.onmousedown)
+      // this.handler.canvas.wrapperEl.removeEventListener("contextmenu", this.contextmenu)
       // if (this.handler.keyEvent?.clipboard) {
       //   this.handler.canvas.wrapperEl.removeEventListener("paste", this.paste)
       // }

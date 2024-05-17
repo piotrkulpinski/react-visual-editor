@@ -39,16 +39,11 @@ class Handler implements HandlerOptions {
   // public keyEvent?: KeyEvent = defaults.keyEvent
   // public activeSelectionOption?: Partial<FabricObjectOption<fabric.ActiveSelection>> =
   //   defaults.activeSelectionOption
-  public fabricObjects?: fabric.Object[]
   public width?: number
   public height?: number
 
   public onAdd?: (object: fabric.Object) => void
-  public onContext?: (
-    el: HTMLDivElement,
-    e: React.MouseEvent,
-    target?: fabric.Object,
-  ) => Promise<any>
+  public onContext?: (el: HTMLDivElement, e: MouseEvent, target?: fabric.Object) => Promise<any>
   public onZoom?: (zoomRatio: number) => void
   public onClick?: (canvas: fabric.Canvas, target: fabric.Object) => void
   public onDblClick?: (canvas: fabric.Canvas, target: fabric.Object) => void
@@ -56,7 +51,7 @@ class Handler implements HandlerOptions {
   public onSelect?: (target: fabric.Object) => void
   public onRemove?: (target: fabric.Object) => void
   // public onTransaction?: (transaction: TransactionEvent) => void
-  // public onInteraction?: (interactionMode: InteractionMode) => void
+  public onInteraction?: (interactionMode: InteractionMode) => void
   public onLoad?: (handler: Handler, canvas?: fabric.Canvas) => void
 
   public zoomHandler: ZoomHandler
@@ -71,8 +66,6 @@ class Handler implements HandlerOptions {
   // public guidelineHandler: GuidelineHandler
   // public shortcutHandler: ShortcutHandler
 
-  public objectMap: Record<string, fabric.Object> = {}
-  public objects: fabric.Object[] = []
   public activeLine?: any
   public activeShape?: any
   public zoom = 1
@@ -88,7 +81,6 @@ class Handler implements HandlerOptions {
     this.canvas = options.canvas
     this.container = options.container
     this.canvasOptions = options.canvasOptions
-    this.objects = []
 
     // Store
     this.store = createStore(() => ({
@@ -117,7 +109,7 @@ class Handler implements HandlerOptions {
     this.onSelect = options.onSelect
     this.onRemove = options.onRemove
     // this.onTransaction = options.onTransaction
-    // this.onInteraction = options.onInteraction
+    this.onInteraction = options.onInteraction
     this.onLoad = options.onLoad
 
     // Handlers
@@ -131,33 +123,6 @@ class Handler implements HandlerOptions {
     // this.alignmentHandler = new AlignmentHandler(this)
     // this.guidelineHandler = new GuidelineHandler(this)
     // this.shortcutHandler = new ShortcutHandler(this)
-  }
-
-  /**
-   * Get all objects from the canvas
-   */
-  public getObjects = () => {
-    const objects = this.canvas.getObjects().filter(obj => {
-      if (obj.id === this.workspaceOptions.id) {
-        return false
-      }
-      if (!obj.id) {
-        return false
-      }
-      return true
-    })
-
-    if (objects.length) {
-      for (const obj of objects) {
-        if (obj.id) {
-          this.objectMap[obj.id] = obj
-        }
-      }
-    } else {
-      this.objectMap = {}
-    }
-
-    return objects
   }
 
   // /**
@@ -1113,26 +1078,28 @@ class Handler implements HandlerOptions {
   //   }
   // }
 
-  // /**
-  //  * Clear canvas
-  //  * @param {boolean} [includeWorkarea=false]
-  //  */
-  // public clear = (includeWorkarea = false) => {
-  //   if (includeWorkarea) {
-  //     this.canvas.clear()
-  //     this.workarea = null
-  //   } else {
-  //     this.canvas.discardActiveObject()
-  //     this.canvas.getObjects().forEach((obj: any) => {
-  //       if (obj.id === "workarea") {
-  //         return
-  //       }
-  //       this.canvas.remove(obj)
-  //     })
-  //   }
-  //   this.objects = this.getObjects()
-  //   this.canvas.renderAll()
-  // }
+  /**
+   * Clear canvas
+   * @param includeWorkspace - If true, clear the workspace
+   */
+  public clear = (includeWorkspace = false) => {
+    if (!this.canvas.getObjects().length) {
+      return
+    }
+
+    if (includeWorkspace) {
+      this.canvas.clear()
+      this.workspace = undefined
+    } else {
+      this.canvas.discardActiveObject()
+      this.canvas
+        .getObjects()
+        .filter(({ id }) => id !== this.workspaceOptions.id)
+        .map(obj => this.canvas.remove(obj))
+    }
+
+    this.canvas.renderAll()
+  }
 
   // /**
   //  * Save target object as image
@@ -1170,7 +1137,7 @@ class Handler implements HandlerOptions {
   // public saveCanvasImage = (option = { name: "New Image", format: "png", quality: 1 }) => {
   //   // If it's zoomed out/in, the container will also include in the image
   //   // hence need to reset the zoom level.
-  //   let { left, top, width, height, scaleX, scaleY } = this.workarea
+  //   let { left, top, width, height, scaleX, scaleY } = this.workspace
   //   width = Math.ceil(width * scaleX)
   //   height = Math.ceil(height * scaleY)
   //   // cachedVT is used to reset the viewportTransform after the image is saved.
@@ -1212,16 +1179,16 @@ class Handler implements HandlerOptions {
   //   }
   // }
 
-  // /**
-  //  * Destroy canvas
-  //  *
-  //  */
-  // public destroy = () => {
-  //   this.eventHandler.destroy()
-  //   this.guidelineHandler.destroy()
-  //   this.contextmenuHandler.destory()
-  //   this.clear(true)
-  // }
+  /**
+   * Destroy canvas
+   */
+  public destroy = () => {
+    this.canvas.dispose()
+    this.eventHandler.destroy()
+    // this.guidelineHandler.destroy()
+    // this.contextmenuHandler.destory()
+    this.clear(true)
+  }
 
   // /**
   //  * Set canvas option

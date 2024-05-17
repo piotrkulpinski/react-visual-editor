@@ -30,7 +30,6 @@ class WorkspaceHandler {
     this.handler.workspace = workspace
     this.handler.canvas.add(workspace)
     this.handler.canvas.renderAll()
-    this.handler.objects = this.handler.getObjects()
 
     // Zoom the canvas to fit the workspace
     this.handler.zoomHandler.setZoomToFit()

@@ -16,7 +16,6 @@ type CanvasProps = HTMLAttributes<HTMLDivElement> & {
 
 export const Canvas = forwardRef<Handler, CanvasProps>(({ options, ...props }, ref) => {
   const containerRef = createRef<HTMLDivElement>()
-  const id = uuid()
   const [handler, setHandler] = useState<Handler>()
 
   const canvasOptions = Object.assign(
@@ -39,7 +38,7 @@ export const Canvas = forwardRef<Handler, CanvasProps>(({ options, ...props }, r
     })
 
     const handlerInstance = new Handler({
-      id,
+      id: uuid(),
       canvas,
       canvasOptions,
       container: containerRef.current as HTMLDivElement,
@@ -47,9 +46,9 @@ export const Canvas = forwardRef<Handler, CanvasProps>(({ options, ...props }, r
 
     setHandler(handlerInstance)
 
+    // Return function to destroy handler
     return () => {
-      // Trigger the async `dispose` method
-      canvas.dispose()
+      handlerInstance.destroy()
     }
   }, [])
 

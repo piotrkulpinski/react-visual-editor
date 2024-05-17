@@ -36,7 +36,7 @@ class InteractionHandler {
         break
     }
 
-    for (const obj of this.handler.objects) {
+    for (const obj of this.handler.canvas.getObjects()) {
       switch (mode) {
         case InteractionMode.SELECT:
           obj.hoverCursor = "move"
@@ -49,11 +49,11 @@ class InteractionHandler {
     }
 
     this.handler.canvas.renderAll()
+    this.handler.onInteraction?.(mode)
   }
 
   /**
-   * Moving objects in grap mode
-   * @param {MouseEvent} e
+   * Moving objects in pan mode
    */
   public moving = (e: MouseEvent) => {
     const delta = new fabric.Point(e.movementX, e.movementY)

@@ -8,53 +8,59 @@ export type HandlerCallback = {
    *
    */
   onAdd?: (object: fabric.Object) => void
+
   /**
    * Return contextmenu element
    *
    */
-  onContext?: (
-    el: HTMLDivElement,
-    e: React.MouseEvent,
-    target?: fabric.Object,
-  ) => Promise<any> | any
+  onContext?: (el: HTMLDivElement, e: MouseEvent, target?: fabric.Object) => Promise<any> | any
+
   /**
    * When zoom, Called function
    */
   onZoom?: (zoomRatio: number) => void
+
   /**
    * When clicked object, Called function
    *
    */
   onClick?: (canvas: fabric.Canvas, target: fabric.Object) => void
+
   /**
    * When double clicked object, Called function
    *
    */
   onDblClick?: (canvas: fabric.Canvas, target: fabric.Object) => void
+
   /**
    * When modified object, Called function
    */
   onModified?: (target: fabric.Object) => void
+
   /**
    * When select object, Called function
    *
    */
   onSelect?: (target: fabric.Object) => void
+
   /**
    * When has been removed object in Canvas, Called function
    *
    */
   onRemove?: (target: fabric.Object) => void
+
   /**
    * When has been undo or redo, Called function
    *
    */
   // onTransaction?: (transaction: TransactionEvent) => void
-  // /**
-  //  * When has been changed interaction mode, Called function
-  //  *
-  //  */
-  // onInteraction?: (interactionMode: InteractionMode) => void
+
+  /**
+   * When has been changed interaction mode, Called function
+   *
+   */
+  onInteraction?: (interactionMode: InteractionMode) => void
+
   /**
    * When canvas has been loaded
    *
@@ -117,11 +123,6 @@ export type HandlerOptions = HandlerCallback & {
    * Keyboard event in Canvas
    */
   // keyEvent?: KeyEvent
-
-  /**
-   * Append custom objects
-   */
-  fabricObjects?: fabric.Object[]
 }
 
 export type ZoomOptions = {
