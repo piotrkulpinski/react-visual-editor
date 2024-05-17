@@ -10,24 +10,23 @@ import {
   IconShape,
 } from "@tabler/icons-react"
 import type { HTMLAttributes } from "react"
+import { type StoreApi, useStore } from "zustand"
+import { useEditor } from "../providers/EditorProvider"
 import { CanvasButton } from "./CanvasButton"
 
 export const CanvasTopNav = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
+  const { editor } = useEditor()
+
+  if (!editor) {
+    return null
+  }
+  const { isRulerEnabled } = useStore(editor?.store as StoreApi<any>)
+
   return (
-    <div
-      className={cx(
-        "relative z-10 flex items-center h-10 shrink-0 px-4 bg-white shadow-outline",
-        className,
-      )}
-      {...props}
-    >
+    <div className={cx("size-full flex items-center", className)} {...props}>
       <div className="flex items-center divide-x -mx-3">
         <div className="flex items-center gap-0.5 px-3 h-4">
-          <CanvasButton
-            tooltip="Add Rectangle"
-            prefix={<IconShape />}
-            // onClick={() => editor.addRectangle()}
-          />
+          <CanvasButton tooltip="Add Rectangle" prefix={<IconShape />} />
         </div>
 
         <div className="flex items-center gap-0.5 px-3 h-4">
@@ -41,7 +40,12 @@ export const CanvasTopNav = ({ className, ...props }: HTMLAttributes<HTMLDivElem
         </div>
 
         <div className="flex items-center gap-0.5 px-3 h-4">
-          <CanvasButton tooltip="Toggle Ruler" prefix={<IconRuler />} />
+          <CanvasButton
+            tooltip="Toggle Ruler"
+            prefix={<IconRuler />}
+            onClick={editor.rulerToggle}
+            isActive={isRulerEnabled}
+          />
         </div>
       </div>
 

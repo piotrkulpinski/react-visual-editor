@@ -202,6 +202,9 @@ class CanvasRuler {
     this.canvas.on("mouse:up", this.eventHandler.canvasMouseUp)
     this.canvas.on("selection:cleared", this.eventHandler.clearStatus)
 
+    // Update cursor
+    this.canvas.defaultCursor = "default"
+
     // Show guides
     this.showGuideline()
 
@@ -222,6 +225,9 @@ class CanvasRuler {
     this.canvas.off("mouse:move", this.eventHandler.canvasMouseMove as any)
     this.canvas.off("mouse:up", this.eventHandler.canvasMouseUp as any)
     this.canvas.off("selection:cleared", this.eventHandler.clearStatus)
+
+    // Update cursor
+    this.canvas.defaultCursor = "default"
 
     // Hide guides
     this.hideGuideline()
@@ -610,6 +616,7 @@ class CanvasRuler {
       }
       return
     }
+
     // const activeObjects = this.canvas.getActiveObjects();
     // if (activeObjects.length === 1 && activeObjects[0] instanceof fabric.GuideLine) {
     //   return;

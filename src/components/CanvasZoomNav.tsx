@@ -1,24 +1,26 @@
-import { Button, ButtonGroup, Dropdown, MenuItem, Tooltip, cx } from "@curiousleaf/design"
+import { Button, ButtonGroup, Dropdown, MenuItem, Tooltip } from "@curiousleaf/design"
 import { IconMaximize, IconMinus, IconPlus } from "@tabler/icons-react"
-import { type HTMLAttributes, useState } from "react"
-import { useEditor } from "../providers/EditorProvider"
+import type { HTMLAttributes } from "react"
+import { useStore } from "zustand"
+import type Handler from "../../lib/handlers/Handler"
 
-export const CanvasBottomNav = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
-  const { editor } = useEditor()
-  const [zoomLevel, setZoomLevel] = useState(1)
+type CanvasZoomNavProps = HTMLAttributes<HTMLDivElement> & {
+  handler: Handler
+}
+
+export const CanvasZoomNav = ({ handler, ...props }: CanvasZoomNavProps) => {
+  const { zoom } = useStore(handler.store)
   const zoomLevels = [0.25, 0.5, 0.75, 1, 1.5, 2, 4]
 
-  editor.on("zoomChange", setZoomLevel)
-
   return (
-    <div className={cx("absolute bottom-4 right-4 flex items-center gap-2", className)} {...props}>
+    <div className="absolute bottom-4 right-4 flex items-center gap-2" {...props}>
       <Tooltip tooltip="Zoom to Fit">
         <Button
           size="sm"
           theme="secondary"
           variant="outline"
           prefix={<IconMaximize />}
-          onClick={() => editor.zoomToFit()}
+          onClick={() => handler.zoomHandler.setZoomToFit()}
         />
       </Tooltip>
 
@@ -29,14 +31,14 @@ export const CanvasBottomNav = ({ className, ...props }: HTMLAttributes<HTMLDivE
             theme="secondary"
             variant="outline"
             prefix={<IconPlus />}
-            onClick={() => editor.zoomIn()}
+            onClick={() => handler.zoomHandler.setZoomIn()}
           />
         </Tooltip>
 
         <Dropdown>
           <Dropdown.Trigger asChild>
             <Button size="sm" theme="secondary" variant="outline">
-              <div className="min-w-[5ch]">{Math.round(zoomLevel * 100)}%</div>
+              <div className="min-w-[5ch]">{Math.round(zoom * 100)}%</div>
             </Button>
           </Dropdown.Trigger>
 
@@ -45,7 +47,7 @@ export const CanvasBottomNav = ({ className, ...props }: HTMLAttributes<HTMLDivE
 
             <Dropdown.Group>
               {zoomLevels.map(level => (
-                <Dropdown.Item key={level} onClick={() => editor.setZoom(level)}>
+                <Dropdown.Item key={level} onClick={() => handler.zoomHandler.setZoom(level)}>
                   <MenuItem size="sm" className="text-center">
                     {level * 100}%
                   </MenuItem>
@@ -61,7 +63,7 @@ export const CanvasBottomNav = ({ className, ...props }: HTMLAttributes<HTMLDivE
             theme="secondary"
             variant="outline"
             prefix={<IconMinus />}
-            onClick={() => editor.zoomOut()}
+            onClick={() => handler.zoomHandler.setZoomOut()}
           />
         </Tooltip>
       </ButtonGroup>

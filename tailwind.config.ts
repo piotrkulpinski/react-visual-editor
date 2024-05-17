@@ -16,11 +16,11 @@ export default {
     extend: {
       colors: {
         primary: {
-          lighter: `var(--color-primary-lighter, ${designConfig.theme.colors.blue.lighter})`,
-          light: `var(--color-primary-light, ${designConfig.theme.colors.blue.light})`,
-          DEFAULT: `var(--color-primary, ${designConfig.theme.colors.blue.DEFAULT})`,
-          dark: `var(--color-primary-dark, ${designConfig.theme.colors.blue.dark})`,
-          darker: `var(--color-primary-darker, ${designConfig.theme.colors.blue.darker})`,
+          lighter: "rgb(var(--color-primary-lighter) / <alpha-value>)",
+          light: "rgb(var(--color-primary-light) / <alpha-value>)",
+          DEFAULT: "rgb(var(--color-primary) / <alpha-value>)",
+          dark: "rgb(var(--color-primary-dark) / <alpha-value>)",
+          darker: "rgb(var(--color-primary-darker) / <alpha-value>)",
         },
       },
 

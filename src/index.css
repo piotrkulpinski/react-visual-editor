@@ -18,11 +18,11 @@
     /* Flat-top three */ "cv09",
     /* Open 4 */ "cv02" 1;
 
-  --color-primary-lighter: #efb7b2;
-  --color-primary-light: #e48d85;
-  --color-primary: #c4544a;
-  --color-primary-dark: #a23c33;
-  --color-primary-darker: #86352e;
+    --color-primary-lighter: 239 183 178;
+    --color-primary-light: 228 141 133;
+    --color-primary: 196 84 74;
+    --color-primary-dark: 162 60 51;
+    --color-primary-darker: 134 53 46;
 }
 
 @supports (font-variation-settings: normal) {

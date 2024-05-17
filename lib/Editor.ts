@@ -2,6 +2,7 @@ import EventEmitter from "events"
 import type { ICanvasOptions } from "fabric/fabric-impl"
 import hotkeys from "hotkeys-js"
 import { AsyncSeriesHook } from "tapable"
+import { createStore } from "zustand"
 import ServersPlugin from "./plugin/ServersPlugin"
 
 class Editor extends EventEmitter {
@@ -11,6 +12,8 @@ class Editor extends EventEmitter {
   private pluginMap: {
     [propName: string]: IPluginTempl
   } = {}
+
+  store = createStore(() => {})
 
   // Custom Events
   private customEvents: string[] = []

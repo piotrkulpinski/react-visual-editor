@@ -1,10 +1,16 @@
 import type { fabric } from "fabric"
+import { createStore } from "zustand"
 import type Editor from "../Editor"
 import EditorPlugin from "../EditorPlugin"
 import CanvasRuler from "../ruler/ruler"
 
+type RulerStore = {
+  isRulerEnabled: boolean
+}
+
 class RulerPlugin extends EditorPlugin {
   static pluginName = "RulerPlugin"
+  static events = []
   static apis = [
     "hideGuideline",
     "showGuideline",
@@ -14,10 +20,16 @@ class RulerPlugin extends EditorPlugin {
     "rulerToggle",
   ]
 
+  store = createStore<RulerStore>(() => ({
+    isRulerEnabled: true,
+  }))
+
   private ruler: CanvasRuler | undefined
 
   constructor(canvas: fabric.Canvas, editor: Editor) {
     super(canvas, editor)
+
+    // Initialize plugin
     this.init()
   }
 
@@ -36,7 +48,9 @@ class RulerPlugin extends EditorPlugin {
   }
 
   init() {
-    this.ruler = new CanvasRuler(this.canvas)
+    this.ruler = new CanvasRuler(this.canvas, {
+      enabled: this.store.getState().isRulerEnabled,
+    })
 
     this.canvas.on("guideline:moving", ({ target }) => {
       if (this.isRectOut(this.editor.workspace, target)) {
@@ -62,18 +76,24 @@ class RulerPlugin extends EditorPlugin {
 
   rulerEnable() {
     this.ruler?.enable()
+
+    this.editor.store.setState({ isRulerEnabled: true })
   }
 
   rulerDisable() {
     this.ruler?.disable()
+
+    this.editor.store.setState({ isRulerEnabled: false })
   }
 
   rulerToggle() {
     this.ruler?.toggle()
+
+    this.editor.store.setState({ isRulerEnabled: !this.editor.store.getState().isRulerEnabled })
   }
 
   isRulerEnabled() {
-    return this.ruler?.options.enabled ?? false
+    return this.editor.store.getState().isRulerEnabled
   }
 
   /**
@@ -90,7 +110,6 @@ class RulerPlugin extends EditorPlugin {
     }
 
     if (target.isHorizontal()) {
-      console.log(targetRect)
       return top > targetRect.top + 1 || top + height < targetRect.top + targetRect.height - 1
     }
 
