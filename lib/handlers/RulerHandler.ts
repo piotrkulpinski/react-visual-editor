@@ -64,7 +64,7 @@ class RulerHandler {
     calcObjectRect: throttle({ interval: 15 }, this.calcObjectRect.bind(this)),
     clearStatus: this.clearStatus.bind(this),
     canvasMouseDown: this.canvasMouseDown.bind(this),
-    canvasMouseMove: throttle({ interval: 15 }, this.canvasMouseMove.bind(this)),
+    canvasMouseMove: throttle({ interval: 25 }, this.canvasMouseMove.bind(this)),
     canvasMouseUp: this.canvasMouseUp.bind(this),
     render: () => this.render(),
   }
@@ -77,8 +77,8 @@ class RulerHandler {
     this.handler.canvas.on("after:render", this.eventHandler.calcObjectRect)
     this.handler.canvas.on("after:render", this.eventHandler.render)
     // this.handler.canvas.on("mouse:down", this.eventHandler.canvasMouseDown)
-    // this.handler.canvas.on("mouse:move", this.eventHandler.canvasMouseMove)
     // this.handler.canvas.on("mouse:up", this.eventHandler.canvasMouseUp)
+    // this.handler.canvas.on("mouse:move", this.eventHandler.canvasMouseMove)
     this.handler.canvas.on("selection:cleared", this.eventHandler.clearStatus)
 
     // Render the ruler
@@ -313,15 +313,21 @@ class RulerHandler {
    * @returns Return the calculated spacing between rulers
    */
   private getGap = (zoom: number) => {
-    const zooms = [0.02, 0.03, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 18]
-    const gaps = [5000, 2500, 1000, 500, 250, 100, 50, 25, 10, 5, 2]
+    const zoomGapPairs = [
+      [18, 2],
+      [10, 5],
+      [5, 10],
+      [2, 25],
+      [1, 50],
+      [0.5, 100],
+      [0.2, 250],
+      [0.1, 500],
+      [0.05, 1000],
+      [0.03, 2500],
+      [0.02, 5000],
+    ]
 
-    let i = 0
-    while (i < zooms.length && (zooms[i] ?? 0) < zoom) {
-      i++
-    }
-
-    return gaps[i - 1] || 5000
+    return zoomGapPairs.find(([z]) => zoom >= z)?.[1] || 5000
   }
 
   /**
@@ -399,26 +405,14 @@ class RulerHandler {
    * @param point
    * @returns "vertical" | "horizontal" | false
    */
-  public isPointOnRuler(point: fabric.Point) {
-    const verticalRuler = new fabric.Rect({
-      left: 0,
-      top: 0,
-      width: this.handler.rulerOptions.ruleSize,
-      height: this.handler.canvas.height,
-    })
+  public isPointOnRuler({ x, y }: fabric.Point) {
+    const { ruleSize } = this.handler.rulerOptions
 
-    const horizontalRuler = new fabric.Rect({
-      left: 0,
-      top: 0,
-      width: this.handler.rulerOptions.ruleSize,
-      height: this.handler.canvas.height,
-    })
-
-    if (verticalRuler.containsPoint(point)) {
+    if (x >= 0 && x <= ruleSize) {
       return "vertical"
     }
 
-    if (horizontalRuler.containsPoint(point)) {
+    if (y >= 0 && y <= ruleSize) {
       return "horizontal"
     }
 
@@ -437,25 +431,43 @@ class RulerHandler {
     const hoveredRuler = this.isPointOnRuler(e.pointer)
 
     if (hoveredRuler && this.activeOn === "up") {
+      const { x, y } = e.absolutePointer
+
       // Backup properties
       this.lastAttr.selection = this.handler.canvas.selection
       this.handler.canvas.selection = false
       this.activeOn = "down"
 
-      this.tempGuidelLine = new fabric.GuideLine(
-        hoveredRuler === "horizontal" ? e.absolutePointer.y : e.absolutePointer.x,
-        {
-          axis: hoveredRuler,
-          visible: false,
-        }
-      )
+      // Create a temporary guide line
+      this.tempGuidelLine = new fabric.GuideLine(hoveredRuler === "horizontal" ? y : x, {
+        axis: hoveredRuler,
+        visible: false,
+      })
 
+      // Set up the temporary guide line
       this.handler.canvas.add(this.tempGuidelLine)
       this.handler.canvas.setActiveObject(this.tempGuidelLine)
       this.handler.canvas._setupCurrentTransform(e.e, this.tempGuidelLine, true)
 
+      // Trigger the down event
       this.tempGuidelLine.fire("down", this.getCommonEventInfo(e))
     }
+  }
+
+  /**
+   * Mouse move event on canvas
+   * @param e - Mouse move event
+   */
+  private canvasMouseUp(e: IEvent<MouseEvent>) {
+    if (this.activeOn !== "down") return
+
+    // Restore properties
+    this.handler.canvas.selection = this.lastAttr.selection
+    this.activeOn = "up"
+
+    // Trigger the up event
+    this.tempGuidelLine?.fire("up", this.getCommonEventInfo(e))
+    this.tempGuidelLine = undefined
   }
 
   /**
@@ -486,48 +498,23 @@ class RulerHandler {
 
     const hoveredRuler = this.isPointOnRuler(e.pointer)
 
+    // If the mouse is not on the ruler, return the cursor to the default state
     if (!hoveredRuler) {
+      this.lastAttr.hoverStatus = "out"
+      this.handler.canvas.defaultCursor = "default"
       return
     }
 
-    // Mouse exit from inside
-    if (this.lastAttr.hoverStatus !== "out") {
-      // Change mouse cursor
-      this.lastAttr.hoverStatus = "out"
+    // If the mouse is on the ruler, change the cursor
+    if (this.lastAttr.hoverStatus !== hoveredRuler) {
+      const cursorMap = {
+        horizontal: "ns-resize",
+        vertical: "ew-resize",
+      }
 
-      // Change canvas cursor
-      this.handler.canvas.defaultCursor = this.lastAttr.cursor
-    }
-
-    // const activeObjects = this.handler.canvas.getActiveObjects();
-    // if (activeObjects.length === 1 && activeObjects[0] instanceof fabric.GuideLine) {
-    //   return;
-    // }
-
-    // Mouse enter from outside or on the other side of the ruler
-    if (this.lastAttr.hoverStatus === "out" || hoveredRuler !== this.lastAttr.hoverStatus) {
-      // Change mouse cursor
       this.lastAttr.hoverStatus = hoveredRuler
-      this.lastAttr.cursor = this.handler.canvas.defaultCursor
-
-      // Change canvas cursor
-      this.handler.canvas.defaultCursor = hoveredRuler === "horizontal" ? "ns-resize" : "ew-resize"
+      this.handler.canvas.defaultCursor = cursorMap[hoveredRuler]
     }
-  }
-
-  /**
-   * Mouse move event on canvas
-   * @param e - Mouse move event
-   */
-  private canvasMouseUp(e: IEvent<MouseEvent>) {
-    if (this.activeOn !== "down") return
-
-    // Restore properties
-    this.handler.canvas.selection = this.lastAttr.selection
-    this.activeOn = "up"
-
-    this.tempGuidelLine?.fire("up", this.getCommonEventInfo(e))
-    this.tempGuidelLine = undefined
   }
 
   /**

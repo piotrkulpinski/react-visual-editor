@@ -1,6 +1,5 @@
 import { fabric } from "fabric"
 import type { IEvent } from "fabric/fabric-impl"
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { throttle } from "radash"
 import { setupGuideLine } from "./guideline"
 import { drawLine, drawMask, drawRect, drawText, getGap, mergeLines } from "./utils"
@@ -138,7 +137,7 @@ class CanvasRuler {
         textColor: "#888888",
         scaleColor: "#D4D4D4",
       },
-      options,
+      options
     )
 
     this.ctx = this.canvas.getContext()
@@ -369,7 +368,7 @@ class CanvasRuler {
         const roundFactor = (x: number) => `${Math.round(x / zoom + startCalibration)}`
         const leftTextVal = roundFactor(isHorizontal ? rect.left : rect.top)
         const rightTextVal = roundFactor(
-          isHorizontal ? rect.left + rect.width : rect.top + rect.height,
+          isHorizontal ? rect.left + rect.width : rect.top + rect.height
         )
 
         const isSameText = leftTextVal === rightTextVal
@@ -562,7 +561,7 @@ class CanvasRuler {
         {
           axis: hoveredRuler,
           visible: false,
-        },
+        }
       )
 
       this.canvas.add(this.tempGuidelLine)
