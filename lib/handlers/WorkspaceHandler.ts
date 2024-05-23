@@ -46,8 +46,6 @@ class WorkspaceHandler {
 
     // Zoom the canvas
     this.handler.zoomHandler.setZoomToFit()
-
-    console.log("Resized workspace")
   }
 }
 

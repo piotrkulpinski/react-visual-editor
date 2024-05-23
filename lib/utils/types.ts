@@ -99,6 +99,11 @@ export type HandlerOptions = HandlerCallback & {
    */
   workspaceOptions?: WorkspaceOptions
 
+  /**
+   * Ruler options
+   */
+  rulerOptions?: RulerOptions
+
   // /**
   //  * Canvas option
   //  */
@@ -122,34 +127,63 @@ export type HandlerOptions = HandlerCallback & {
 
 export type ZoomOptions = {
   /**
-   * Whether should be enabled
-   * @type {boolean}
-   */
-  enabled: boolean
-
-  /**
    * Min zoom ratio
-   * @type {number}
    */
   minZoom: number
 
   /**
    * Max zoom ratio
-   * @type {number}
    */
   maxZoom: number
 
   /**
    * Zoom ratio step
-   * @type {number[]}
    */
   steps: number[]
 
   /**
    * The ratio for the fit zoom
-   * @type {number}
    */
   fitRatio: number
+}
+
+export type RulerOptions = {
+  /**
+   * Ruler Width and Height
+   * @default 20
+   */
+  ruleSize: number
+
+  /**
+   * Font size
+   * @default 9
+   */
+  fontSize: number
+
+  /**
+   * Background color
+   */
+  backgroundColor: string
+
+  /**
+   * Text color
+   */
+  textColor: string
+
+  /**
+   * Scale color
+   */
+  scaleColor: string
+
+  /**
+   * Border color
+   */
+  borderColor: string
+
+  /**
+   * Highlight color
+   */
+  highlightColor: string
 }
 
 export type WorkspaceOptions = Partial<fabric.Rect>
@@ -162,4 +196,15 @@ export type HotkeyHandler = {
 export enum InteractionMode {
   SELECT = "select",
   PAN = "pan",
+}
+
+export type Rect = {
+  left: number
+  top: number
+  width: number
+  height: number
+}
+
+export type HighlightRect = Rect & {
+  skip?: "x" | "y"
 }

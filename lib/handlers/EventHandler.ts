@@ -217,10 +217,6 @@ class EventHandler {
    * @returns
    */
   public mousewheel = ({ e }: fabric.IEvent<WheelEvent>) => {
-    if (!this.handler.zoomOptions.enabled) {
-      return
-    }
-
     e.preventDefault()
     e.stopPropagation()
 

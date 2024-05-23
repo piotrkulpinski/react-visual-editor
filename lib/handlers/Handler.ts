@@ -9,15 +9,18 @@ import {
   InteractionMode,
   type WorkspaceOptions,
   type ZoomOptions,
+  RulerOptions,
 } from "../utils/types"
 import EventHandler from "./EventHandler"
 import InteractionHandler from "./InteractionHandler"
-import WorkspaceHandler from "./WorkspaceHandler"
-import { defaultWorkspaceOptions } from "./WorkspaceHandler"
+import WorkspaceHandler, { defaultWorkspaceOptions } from "./WorkspaceHandler"
 import ZoomHandler, { defaultZoomOptions } from "./ZoomHandler"
+import RulerHandler, { defaultRulerOptions } from "./RulerHandler"
+import DrawingHandler from "./DrawingHandler"
 
 export type HandlerStore = {
   zoom: number
+  rulerEnabled: boolean
   interactionMode: InteractionMode
 }
 
@@ -35,6 +38,7 @@ class Handler implements HandlerOptions {
 
   public zoomOptions: ZoomOptions
   public workspaceOptions: WorkspaceOptions
+  public rulerOptions: RulerOptions
   // public editable: boolean
   // public propertiesToInclude?: string[] = defaults.propertiesToInclude
   // public canvasOption?: CanvasOption = defaults.canvasOption
@@ -45,7 +49,7 @@ class Handler implements HandlerOptions {
   //   defaults.activeSelectionOption
 
   public onAdd?: (object: fabric.Object) => void
-  public onContext?: (el: HTMLDivElement, e: MouseEvent, target?: fabric.Object) => Promise<any>
+  public onContext?: (el: HTMLDivElement, e: MouseEvent, target?: fabric.Object) => Promise<unknown>
   public onZoom?: (zoomRatio: number) => void
   public onClick?: (canvas: fabric.Canvas, target: fabric.Object) => void
   public onDblClick?: (canvas: fabric.Canvas, target: fabric.Object) => void
@@ -56,10 +60,12 @@ class Handler implements HandlerOptions {
   public onInteraction?: (interactionMode: InteractionMode) => void
   public onLoad?: (handler: Handler, canvas?: fabric.Canvas) => void
 
+  public drawingHandler: DrawingHandler
   public zoomHandler: ZoomHandler
-  public eventHandler: EventHandler
   public workspaceHandler: WorkspaceHandler
   public interactionHandler: InteractionHandler
+  public rulerHandler: RulerHandler
+  public eventHandler: EventHandler
   // public imageHandler: ImageHandler
   // public contextmenuHandler: ContextmenuHandler
   // public workareaHandler: WorkareaHandler
@@ -78,11 +84,13 @@ class Handler implements HandlerOptions {
     // Store
     this.store = createStore(() => ({
       zoom: this.canvas.getZoom(),
+      rulerEnabled: true,
       interactionMode: InteractionMode.SELECT,
     }))
 
     this.zoomOptions = Object.assign({}, defaultZoomOptions, options.zoomOptions)
     this.workspaceOptions = Object.assign({}, defaultWorkspaceOptions, options.workspaceOptions)
+    this.rulerOptions = Object.assign({}, defaultRulerOptions, options.rulerOptions)
     // this.setPropertiesToInclude(options.propertiesToInclude)=
     // this.setObjectOption(options.objectOption)
     // this.setFabricObjects(options.fabricObjects)
@@ -104,9 +112,11 @@ class Handler implements HandlerOptions {
     this.onLoad = options.onLoad
 
     // Handlers
+    this.drawingHandler = new DrawingHandler(this)
     this.zoomHandler = new ZoomHandler(this)
     this.workspaceHandler = new WorkspaceHandler(this)
     this.interactionHandler = new InteractionHandler(this)
+    this.rulerHandler = new RulerHandler(this)
     // this.imageHandler = new ImageHandler(this)
     // this.contextmenuHandler = new ContextmenuHandler(this)
     // this.transactionHandler = new TransactionHandler(this)
@@ -119,7 +129,7 @@ class Handler implements HandlerOptions {
     this.resizeObserver = new ResizeObserver(
       debounce({ delay: 25 }, () => {
         this.workspaceHandler.resizeWorkspace()
-      }),
+      })
     )
 
     this.resizeObserver.observe(this.container)
@@ -1100,7 +1110,7 @@ class Handler implements HandlerOptions {
       return
     }
 
-    this.getObjects().map(obj => this.canvas.remove(obj))
+    this.getObjects().map((obj) => this.canvas.remove(obj))
     this.canvas.discardActiveObject()
     this.canvas.renderAll()
   }

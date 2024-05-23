@@ -14,7 +14,7 @@ export const CanvasInteractionNav = ({ handler, ...props }: CanvasInteractionNav
   const { interactionMode } = useStore(handler.store)
 
   return (
-    <div className="absolute bottom-4 left-4 flex items-center gap-2" {...props}>
+    <div className="absolute bottom-4 left-4 ml-5 flex items-center gap-2" {...props}>
       <ButtonGroup>
         <CanvasButton
           tooltip="Select Mode"

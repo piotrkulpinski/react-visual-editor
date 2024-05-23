@@ -3,7 +3,6 @@ import type { ZoomOptions } from "../utils/types"
 import type Handler from "./Handler"
 
 export const defaultZoomOptions: ZoomOptions = {
-  enabled: true,
   minZoom: 0.01,
   maxZoom: 5,
   steps: [0.05, 0.75, 0.125, 0.25, 0.5, 0.75, 1, 1.5, 2, 4],
@@ -20,7 +19,7 @@ class ZoomHandler {
       { key: "cmd+=", handler: () => this.setZoomIn() },
       { key: "cmd+-", handler: () => this.setZoomOut() },
       { key: "cmd+0", handler: () => this.setZoom(1) },
-      { key: "cmd+1", handler: () => this.setZoomToFit() },
+      { key: "cmd+1", handler: () => this.setZoomToFit() }
     )
   }
 
@@ -68,8 +67,6 @@ class ZoomHandler {
    * Zoom the canvas to fit the workspace
    */
   public setZoomToFit = () => {
-    console.log("setZoomToFit")
-
     const zoom = this.getScale()
     this.setZoom(zoom * this.handler.zoomOptions.fitRatio)
   }
@@ -86,8 +83,8 @@ class ZoomHandler {
 
     const steps =
       dir === "up"
-        ? zoomSteps.filter(step => step > zoom)
-        : zoomSteps.reverse().filter(step => step < zoom)
+        ? zoomSteps.filter((step) => step > zoom)
+        : zoomSteps.reverse().filter((step) => step < zoom)
 
     return Math[dir === "up" ? "min" : "max"](...steps) || zoom
   }
