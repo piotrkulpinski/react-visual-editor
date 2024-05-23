@@ -15,22 +15,14 @@ class ZoomHandler {
 
   constructor(handler: Handler) {
     this.handler = handler
+
+    this.handler.registerHotkeyHandlers(
+      { key: "cmd+=", handler: () => this.setZoomIn() },
+      { key: "cmd+-", handler: () => this.setZoomOut() },
+      { key: "cmd+0", handler: () => this.setZoom(1) },
+      { key: "cmd+1", handler: () => this.setZoomToFit() },
+    )
   }
-
-  // /**
-  //  * Zoom at mouse wheel event
-  //  */
-  // public mousewheel = ({ e }: fabric.IEvent<WheelEvent>) => {
-  //   if (!this.handler.zoomOptions.enabled) {
-  //     return
-  //   }
-
-  //   e.preventDefault()
-  //   e.stopPropagation()
-
-  //   const zoom = this.handler.canvas.getZoom()
-  //   this.handler.zoomHandler.setZoom(zoom * 0.999 ** e.deltaY, e.layerX, e.layerY)
-  // }
 
   /**
    * Zoom the canvas and trigger the event
@@ -48,11 +40,12 @@ class ZoomHandler {
       this.handler.canvas.zoomToPoint(new fabric.Point(coords[0], coords[1]), normalizedZoom)
     } else {
       this.handler.canvas.setZoom(normalizedZoom)
-      this.handler.workspace && this.setCenterFromObject(this.handler.workspace)
+      this.handler.setCenterFromObject(this.handler.workspace)
     }
 
     // Store the zoom level in the store
     this.handler.store.setState({ zoom: normalizedZoom })
+    return
   }
 
   /**
@@ -75,6 +68,8 @@ class ZoomHandler {
    * Zoom the canvas to fit the workspace
    */
   public setZoomToFit = () => {
+    console.log("setZoomToFit")
+
     const zoom = this.getScale()
     this.setZoom(zoom * this.handler.zoomOptions.fitRatio)
   }
@@ -106,26 +101,10 @@ class ZoomHandler {
     const { offsetWidth: width, offsetHeight: height } = this.handler.container
 
     // FIXME: findScaleToFit is not exported
-    return (fabric.util as any).findScaleToFit(this.handler.workspace, { width, height }) as number
-  }
-
-  /**
-   * Center the canvas on the center point of the specified object
-   *
-   * @param {fabric.Object} object
-   */
-  private setCenterFromObject = (object: fabric.Object) => {
-    const objCenter = object.getCenterPoint()
-    const { width, height, viewportTransform } = this.handler.canvas
-
-    if (width === undefined || height === undefined || !viewportTransform) {
-      return
-    }
-
-    viewportTransform[4] = width / 2 - objCenter.x * (viewportTransform[0] ?? 1)
-    viewportTransform[5] = height / 2 - objCenter.y * (viewportTransform[3] ?? 1)
-    this.handler.canvas.setViewportTransform(viewportTransform)
-    this.handler.canvas.requestRenderAll()
+    return (fabric.util as any).findScaleToFit(this.handler.workspace, {
+      width,
+      height,
+    }) as number
   }
 }
 

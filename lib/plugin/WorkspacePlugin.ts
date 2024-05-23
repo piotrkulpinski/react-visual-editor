@@ -77,7 +77,12 @@ class WorkspacePlugin extends EditorPlugin<WorkspaceOptions> {
   // Initialize workspace
   _initWorkspace() {
     const { width, height, backgroundColor: fill } = this.options
-    const workspace = new fabric.Rect({ id: this.workspaceId, width, height, fill })
+    const workspace = new fabric.Rect({
+      id: this.workspaceId,
+      width,
+      height,
+      fill,
+    })
 
     workspace.set("selectable", false)
     workspace.set("hasControls", false)
@@ -138,7 +143,10 @@ class WorkspacePlugin extends EditorPlugin<WorkspaceOptions> {
     const { offsetWidth: width, offsetHeight: height } = this.options.workspaceEl
 
     // FIXME: findScaleToFit is not exported
-    return (fabric.util as any).findScaleToFit(this.editor.workspace, { width, height }) as number
+    return (fabric.util as any).findScaleToFit(this.editor.workspace, {
+      width,
+      height,
+    }) as number
   }
 
   // Center the canvas on the center point of the specified object

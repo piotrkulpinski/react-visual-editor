@@ -56,8 +56,8 @@ export const Canvas = forwardRef<Handler, CanvasProps>(({ options, ...props }, r
   useImperativeHandle(ref, () => handler as Handler)
 
   return (
-    <div ref={containerRef} {...props}>
-      <canvas id="canvas" />
+    <div ref={containerRef} style={{ outline: "none" }} {...props}>
+      <canvas id="canvas" style={{ outline: "none" }} />
     </div>
   )
 })

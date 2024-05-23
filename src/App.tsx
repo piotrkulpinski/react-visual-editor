@@ -21,13 +21,13 @@ export default function App() {
         </Sidebar>
 
         <div className="relative flex flex-col flex-1 w-full overflow-clip">
-          <nav className="relative z-10 h-10 shrink-0 px-4 bg-white shadow-outline">
-            {/* <CanvasTopNav /> */}
-          </nav>
+          {/* <nav className="relative z-10 h-10 shrink-0 px-4 bg-white shadow-outline">
+            <CanvasTopNav />
+          </nav> */}
 
           <Canvas
             ref={setHandler}
-            className="h-[calc(100%-40px)]"
+            className="h-full"
             options={{
               selectionBorderColor: "transparent",
               selectionColor: "rgb(178,204,255,0.5)",

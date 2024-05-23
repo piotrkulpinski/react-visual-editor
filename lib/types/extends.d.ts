@@ -47,7 +47,9 @@ declare namespace fabric {
       eventName: "guideline:moving" | "guideline:mouseup",
       handler: (event: { e: Event; target: fabric.GuideLine }) => void,
     ): T
-    on(events: { [key: EventName]: (event: { e: Event; target: fabric.GuideLine }) => void }): T
+    on(events: {
+      [key: EventName]: (event: { e: Event; target: fabric.GuideLine }) => void
+    }): T
   }
 
   export interface IGuideLineOptions extends ILineOptions {

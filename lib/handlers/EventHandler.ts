@@ -31,20 +31,18 @@ class EventHandler {
       // "object:rotated": this.rotated,
       "mouse:wheel": this.mousewheel,
       "mouse:down": this.mousedown,
-      "mouse:move": this.mousemove,
       "mouse:up": this.mouseup,
+      "mouse:move": this.mousemove,
       // "selection:cleared": this.selection,
       // "selection:created": this.selection,
       // "selection:updated": this.selection,
     })
 
     if (this.handler.canvas.wrapperEl) {
-      this.handler.canvas.wrapperEl.tabIndex = 1000
       // this.handler.canvas.wrapperEl.addEventListener("keydown", this.keydown, false)
       // this.handler.canvas.wrapperEl.addEventListener("keyup", this.keyup, false)
       // this.handler.canvas.wrapperEl.addEventListener("mousedown", this.onmousedown, false)
       // this.handler.canvas.wrapperEl.addEventListener("contextmenu", this.contextmenu, false)
-
       // if (this.handler.keyEvent?.clipboard) {
       //   document.addEventListener("paste", this.paste, false)
       // }
@@ -63,8 +61,8 @@ class EventHandler {
       // "object:rotating": this.rotating,
       "mouse:wheel": this.mousewheel,
       "mouse:down": this.mousedown,
-      "mouse:move": this.mousemove,
       "mouse:up": this.mouseup,
+      "mouse:move": this.mousemove,
       // "selection:cleared": this.selection,
       // "selection:created": this.selection,
       // "selection:updated": this.selection,
@@ -238,6 +236,7 @@ class EventHandler {
    */
   public mousedown = ({ target }: fabric.IEvent<MouseEvent>) => {
     if (this.handler.store.getState().interactionMode === InteractionMode.PAN) {
+      this.handler.canvas.setCursor("grabbing")
       this.panning = true
       return
     }
@@ -253,27 +252,14 @@ class EventHandler {
   }
 
   /**
-   * Mouse move event on canvas
-   *
-   * @param {FabricEvent<MouseEvent>} opt
-   * @returns
-   */
-  public mousemove = ({ e }: fabric.IEvent<MouseEvent>) => {
-    if (this.handler.store.getState().interactionMode === InteractionMode.PAN && this.panning) {
-      this.handler.interactionHandler.moving(e)
-      this.handler.canvas.requestRenderAll()
-    }
-    return
-  }
-
-  /**
    * Mouse up event on canvas
    *
    * @param {FabricEvent<MouseEvent>} opt
    * @returns
    */
-  public mouseup = (opt: fabric.IEvent<MouseEvent>) => {
+  public mouseup = ({ e }: fabric.IEvent<MouseEvent>) => {
     if (this.handler.store.getState().interactionMode === InteractionMode.PAN) {
+      this.handler.canvas.setCursor("grab")
       this.panning = false
       return
     }
@@ -283,7 +269,24 @@ class EventHandler {
     //   this.handler.guidelineHandler.horizontalLines.length = 0
     // }
 
-    this.handler.canvas.renderAll()
+    // this.handler.canvas.renderAll()
+  }
+
+  /**
+   * Mouse move event on canvas
+   *
+   * @param {FabricEvent<MouseEvent>} opt
+   * @returns
+   */
+  public mousemove = ({ e }: fabric.IEvent<MouseEvent>) => {
+    if (this.handler.store.getState().interactionMode === InteractionMode.PAN) {
+      this.handler.canvas.setCursor(this.panning ? "grabbing" : "grab")
+
+      if (this.panning) {
+        this.handler.interactionHandler.moving(e)
+        this.handler.canvas.requestRenderAll()
+      }
+    }
   }
 
   /**
@@ -484,11 +487,11 @@ class EventHandler {
   //   return true
   // }
 
-  // /**
-  //  * Keydown event on document
-  //  *
-  //  * @param {KeyboardEvent} e
-  //  */
+  /**
+   * Keydown event on document
+   *
+   * @param {KeyboardEvent} e
+   */
   // public keydown = (e: KeyboardEvent) => {
   //   const { keyEvent, editable } = this.handler
   //   if (!Object.keys(keyEvent).length) {

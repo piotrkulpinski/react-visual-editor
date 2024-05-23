@@ -30,9 +30,24 @@ class WorkspaceHandler {
     this.handler.workspace = workspace
     this.handler.canvas.add(workspace)
     this.handler.canvas.renderAll()
-
-    // Zoom the canvas to fit the workspace
     this.handler.zoomHandler.setZoomToFit()
+  }
+
+  public resizeWorkspace = () => {
+    if (!this.handler.isReady()) {
+      return
+    }
+
+    const width = this.handler.container.offsetWidth
+    const height = this.handler.container.offsetHeight
+
+    this.handler.canvas.setDimensions({ width, height })
+    this.handler.canvas.setViewportTransform(fabric.iMatrix.concat())
+
+    // Zoom the canvas
+    this.handler.zoomHandler.setZoomToFit()
+
+    console.log("Resized workspace")
   }
 }
 

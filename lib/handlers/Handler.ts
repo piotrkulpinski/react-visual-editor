@@ -1,8 +1,11 @@
 import type { fabric } from "fabric"
 import type { ICanvasOptions } from "fabric/fabric-impl"
+import hotkeys from "hotkeys-js"
+import { debounce } from "radash"
 import { type StoreApi, createStore } from "zustand"
 import {
   type HandlerOptions,
+  type HotkeyHandler,
   InteractionMode,
   type WorkspaceOptions,
   type ZoomOptions,
@@ -27,7 +30,8 @@ class Handler implements HandlerOptions {
   public canvasOptions?: ICanvasOptions
   public container: HTMLDivElement
   public store: StoreApi<HandlerStore>
-  public workspace?: fabric.Rect
+  public workspace!: fabric.Rect
+  public resizeObserver: ResizeObserver
 
   public zoomOptions: ZoomOptions
   public workspaceOptions: WorkspaceOptions
@@ -39,8 +43,6 @@ class Handler implements HandlerOptions {
   // public keyEvent?: KeyEvent = defaults.keyEvent
   // public activeSelectionOption?: Partial<FabricObjectOption<fabric.ActiveSelection>> =
   //   defaults.activeSelectionOption
-  public width?: number
-  public height?: number
 
   public onAdd?: (object: fabric.Object) => void
   public onContext?: (el: HTMLDivElement, e: MouseEvent, target?: fabric.Object) => Promise<any>
@@ -66,15 +68,6 @@ class Handler implements HandlerOptions {
   // public guidelineHandler: GuidelineHandler
   // public shortcutHandler: ShortcutHandler
 
-  public activeLine?: any
-  public activeShape?: any
-  public zoom = 1
-  public prevTarget?: fabric.Object
-  public target?: fabric.Object
-  public pointArray?: any[]
-  public lineArray?: any[]
-  public isCut = false
-
   constructor(options: HandlerOptions) {
     // Options
     this.id = options.id
@@ -90,9 +83,7 @@ class Handler implements HandlerOptions {
 
     this.zoomOptions = Object.assign({}, defaultZoomOptions, options.zoomOptions)
     this.workspaceOptions = Object.assign({}, defaultWorkspaceOptions, options.workspaceOptions)
-    // this.setPropertiesToInclude(options.propertiesToInclude)
-    // this.setCanvasOption(options.canvasOption)
-    // this.setZoomOption(options.zoomOption)
+    // this.setPropertiesToInclude(options.propertiesToInclude)=
     // this.setObjectOption(options.objectOption)
     // this.setFabricObjects(options.fabricObjects)
     // this.setGuidelineOption(options.guidelineOption)
@@ -114,7 +105,6 @@ class Handler implements HandlerOptions {
 
     // Handlers
     this.zoomHandler = new ZoomHandler(this)
-    this.eventHandler = new EventHandler(this)
     this.workspaceHandler = new WorkspaceHandler(this)
     this.interactionHandler = new InteractionHandler(this)
     // this.imageHandler = new ImageHandler(this)
@@ -123,6 +113,16 @@ class Handler implements HandlerOptions {
     // this.alignmentHandler = new AlignmentHandler(this)
     // this.guidelineHandler = new GuidelineHandler(this)
     // this.shortcutHandler = new ShortcutHandler(this)
+    this.eventHandler = new EventHandler(this)
+
+    // Resize Observer
+    this.resizeObserver = new ResizeObserver(
+      debounce({ delay: 25 }, () => {
+        this.workspaceHandler.resizeWorkspace()
+      }),
+    )
+
+    this.resizeObserver.observe(this.container)
   }
 
   // /**
@@ -1079,26 +1079,49 @@ class Handler implements HandlerOptions {
   // }
 
   /**
-   * Clear canvas
-   * @param includeWorkspace - If true, clear the workspace
+   * Check if the canvas is ready
    */
-  public clear = (includeWorkspace = false) => {
-    if (!this.canvas.getObjects().length) {
+  public isReady = () => {
+    return this.canvas.getObjects().length
+  }
+
+  /**
+   * Return all objects except the workspace
+   */
+  public getObjects = () => {
+    return this.canvas.getObjects().filter(({ id }) => id !== this.workspaceOptions.id)
+  }
+
+  /**
+   * Clear canvas
+   */
+  public clear = () => {
+    if (!this.isReady()) {
       return
     }
 
-    if (includeWorkspace) {
-      this.canvas.clear()
-      this.workspace = undefined
-    } else {
-      this.canvas.discardActiveObject()
-      this.canvas
-        .getObjects()
-        .filter(({ id }) => id !== this.workspaceOptions.id)
-        .map(obj => this.canvas.remove(obj))
+    this.getObjects().map(obj => this.canvas.remove(obj))
+    this.canvas.discardActiveObject()
+    this.canvas.renderAll()
+  }
+
+  /**
+   * Center the canvas on the center point of the workspace
+   *
+   * @param object - The object to center the canvas on
+   */
+  public setCenterFromObject = (object: fabric.Object) => {
+    const { x, y } = object.getCenterPoint()
+    const { width, height, viewportTransform } = this.canvas
+
+    if (width === undefined || height === undefined || !viewportTransform) {
+      return
     }
 
-    this.canvas.renderAll()
+    viewportTransform[4] = width / 2 - x * (viewportTransform[0] ?? 1)
+    viewportTransform[5] = height / 2 - y * (viewportTransform[3] ?? 1)
+    this.canvas.setViewportTransform(viewportTransform)
+    this.canvas.requestRenderAll()
   }
 
   // /**
@@ -1185,9 +1208,24 @@ class Handler implements HandlerOptions {
   public destroy = () => {
     this.canvas.dispose()
     this.eventHandler.destroy()
+    this.resizeObserver.disconnect()
     // this.guidelineHandler.destroy()
     // this.contextmenuHandler.destory()
-    this.clear(true)
+    this.clear()
+  }
+
+  /**
+   * Register hotkey handlers
+   */
+  public registerHotkeyHandlers = (...handler: HotkeyHandler[]) => {
+    for (const hotkey of handler) {
+      hotkeys(hotkey.key, () => {
+        if (this.isReady()) {
+          hotkey.handler()
+          return false
+        }
+      })
+    }
   }
 
   // /**
@@ -1220,92 +1258,6 @@ class Handler implements HandlerOptions {
   //   if (typeof canvasOption.preserveObjectStacking !== "undefined") {
   //     this.canvas.preserveObjectStacking = canvasOption.preserveObjectStacking
   //   }
-  // }
-
-  // /**
-  //  * Set keyboard event
-  //  *
-  //  * @param {KeyEvent} keyEvent
-  //  */
-  // public setKeyEvent = (keyEvent: KeyEvent) => {
-  //   this.keyEvent = Object.assign({}, this.keyEvent, keyEvent)
-  // }
-
-  // /**
-  //  * Set fabric objects
-  //  *
-  //  * @param {FabricObjects} fabricObjects
-  //  */
-  // public setFabricObjects = (fabricObjects: FabricObjects) => {
-  //   this.fabricObjects = Object.assign({}, this.fabricObjects, fabricObjects)
-  // }
-
-  // /**
-  //  * Set workarea option
-  //  *
-  //  * @param {WorkareaOption} workareaOption
-  //  */
-  // public setWorkareaOption = (workareaOption: WorkareaOption) => {
-  //   this.workareaOption = Object.assign({}, this.workareaOption, workareaOption)
-  //   if (this.workarea) {
-  //     this.workarea.set({
-  //       ...workareaOption,
-  //     })
-  //   }
-  // }
-
-  // /**
-  //  * Set guideline option
-  //  *
-  //  * @param {GuidelineOption} guidelineOption
-  //  */
-  // public setGuidelineOption = (guidelineOption: GuidelineOption) => {
-  //   this.guidelineOption = Object.assign({}, this.guidelineOption, guidelineOption)
-  //   if (this.guidelineHandler) {
-  //     this.guidelineHandler.initialize()
-  //   }
-  // }
-
-  // /**
-  //  * Set zoom option
-  //  *
-  //  * @param {ZoomOption} zoomOption
-  //  */
-  // public setZoomOption = (zoomOption: ZoomOption) => {
-  //   this.zoomOption = Object.assign({}, this.zoomOption, zoomOption)
-  // }
-
-  // /**
-  //  * Set object option
-  //  *
-  //  * @param {FabricObjectOption} objectOption
-  //  */
-  // public setObjectOption = (objectOption: FabricObjectOption) => {
-  //   this.objectOption = Object.assign({}, this.objectOption, objectOption)
-  // }
-
-  // /**
-  //  * Set activeSelection option
-  //  *
-  //  * @param {Partial<FabricObjectOption<fabric.ActiveSelection>>} activeSelectionOption
-  //  */
-  // public setActiveSelectionOption = (
-  //   activeSelectionOption: Partial<FabricObjectOption<fabric.ActiveSelection>>,
-  // ) => {
-  //   this.activeSelectionOption = Object.assign(
-  //     {},
-  //     this.activeSelectionOption,
-  //     activeSelectionOption,
-  //   )
-  // }
-
-  // /**
-  //  * Set propertiesToInclude
-  //  *
-  //  * @param {string[]} propertiesToInclude
-  //  */
-  // public setPropertiesToInclude = (propertiesToInclude: string[]) => {
-  //   this.propertiesToInclude = union(propertiesToInclude, this.propertiesToInclude)
   // }
 }
 

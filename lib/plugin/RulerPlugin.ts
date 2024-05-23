@@ -89,7 +89,9 @@ class RulerPlugin extends EditorPlugin {
   rulerToggle() {
     this.ruler?.toggle()
 
-    this.editor.store.setState({ isRulerEnabled: !this.editor.store.getState().isRulerEnabled })
+    this.editor.store.setState({
+      isRulerEnabled: !this.editor.store.getState().isRulerEnabled,
+    })
   }
 
   isRulerEnabled() {

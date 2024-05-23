@@ -96,7 +96,14 @@ class CopyPlugin extends EditorPlugin {
     const activeObject = this.canvas.getActiveObject()
 
     if (activeObject) {
-      return [{ text: "Clone", hotkey: "Ctrl+V", disabled: false, onclick: () => this.clone() }]
+      return [
+        {
+          text: "Clone",
+          hotkey: "Ctrl+V",
+          disabled: false,
+          onclick: () => this.clone(),
+        },
+      ]
     }
   }
 

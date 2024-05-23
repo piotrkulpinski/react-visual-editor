@@ -46,12 +46,24 @@ class GroupPlugin {
     const activeObject = this.canvas.getActiveObject()
     if (activeObject && activeObject.type === "group") {
       return [
-        { text: "拆分组合", hotkey: "Ctrl+V", disabled: false, onclick: () => this.unGroup() },
+        {
+          text: "拆分组合",
+          hotkey: "Ctrl+V",
+          disabled: false,
+          onclick: () => this.unGroup(),
+        },
       ]
     }
 
     if (this.canvas.getActiveObjects().length > 1) {
-      return [{ text: "组合", hotkey: "Ctrl+V", disabled: false, onclick: () => this.group() }]
+      return [
+        {
+          text: "组合",
+          hotkey: "Ctrl+V",
+          disabled: false,
+          onclick: () => this.group(),
+        },
+      ]
     }
   }
   destroy() {

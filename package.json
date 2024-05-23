@@ -5,13 +5,13 @@
   "type": "module",
   "main": "./dist/main.js",
   "types": "./dist/main.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc --p ./tsconfig.build.json && vite build",
-    "lint": "bun biome lint --apply .",
-    "check": "bun biome check --apply .",
-    "format": "bun biome format --write .",
+    "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -19,7 +19,7 @@
     "@curiousleaf/composer": "link:@curiousleaf/composer",
     "@curiousleaf/design": "link:@curiousleaf/design",
     "@curiousleaf/utils": "link:@curiousleaf/utils",
-    "@tabler/icons-react": "^3.3.0",
+    "@tabler/icons-react": "^3.5.0",
     "events": "^3.3.0",
     "fabric": "^5.3.0",
     "fabric-history": "^1.6.0",
@@ -35,16 +35,21 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.7.1",
     "@types/fabric": "^5.3.7",
     "@types/node": "^20.12.11",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@types/uuid": "^9.0.8",
+    "@typescript-eslint/eslint-plugin": "^7.10.0",
+    "@typescript-eslint/parser": "^7.10.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.19",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.6",
     "glob": "^10.3.10",
     "postcss": "^8.4.38",
+    "prettier": "^3.2.5",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.4.5",
     "vite": "^5.2.11",
@@ -55,5 +60,11 @@
     "fabric": "^5.3.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": false,
+    "trailingComma": "es5",
+    "printWidth": 100
   }
 }

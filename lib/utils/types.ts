@@ -118,11 +118,6 @@ export type HandlerOptions = HandlerCallback & {
   //  * ActiveSelection option
   //  */
   // activeSelectionOption?: Partial<FabricObjectOption<fabric.ActiveSelection>>
-
-  /**
-   * Keyboard event in Canvas
-   */
-  // keyEvent?: KeyEvent
 }
 
 export type ZoomOptions = {
@@ -158,6 +153,11 @@ export type ZoomOptions = {
 }
 
 export type WorkspaceOptions = Partial<fabric.Rect>
+
+export type HotkeyHandler = {
+  key: string
+  handler: () => void
+}
 
 export enum InteractionMode {
   SELECT = "select",
