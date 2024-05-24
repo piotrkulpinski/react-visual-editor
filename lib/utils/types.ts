@@ -190,7 +190,7 @@ export type WorkspaceOptions = Partial<fabric.Rect>
 
 export type HotkeyHandler = {
   key: string
-  handler: () => void
+  handler: (e: KeyboardEvent) => void
 }
 
 export enum InteractionMode {

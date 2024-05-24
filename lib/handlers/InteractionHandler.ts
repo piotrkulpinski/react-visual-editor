@@ -17,7 +17,7 @@ class InteractionHandler {
   /**
    * Set interaction mode
    */
-  public setInteractionMode = (mode: InteractionMode) => {
+  public setInteractionMode(mode: InteractionMode) {
     if (!this.handler.isReady()) {
       return
     }
@@ -58,7 +58,7 @@ class InteractionHandler {
   /**
    * Moving objects in pan mode
    */
-  public moving = (e: MouseEvent) => {
+  public moving(e: MouseEvent) {
     const delta = new fabric.Point(e.movementX, e.movementY)
     this.handler.canvas.relativePan(delta)
     this.handler.canvas.requestRenderAll()

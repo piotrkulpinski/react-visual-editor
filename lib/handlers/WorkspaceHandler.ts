@@ -33,7 +33,7 @@ class WorkspaceHandler {
     this.handler.zoomHandler.setZoomToFit()
   }
 
-  public resizeWorkspace = () => {
+  public resizeWorkspace() {
     if (!this.handler.isReady()) {
       return
     }

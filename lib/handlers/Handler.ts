@@ -15,6 +15,7 @@ import EventHandler from "./EventHandler"
 import InteractionHandler from "./InteractionHandler"
 import WorkspaceHandler, { defaultWorkspaceOptions } from "./WorkspaceHandler"
 import ZoomHandler, { defaultZoomOptions } from "./ZoomHandler"
+import NudgeHandler from "./NudgeHandler"
 import RulerHandler, { defaultRulerOptions } from "./RulerHandler"
 import DrawingHandler from "./DrawingHandler"
 import GuideLineHandler from "./GuideLineHandler"
@@ -66,6 +67,7 @@ class Handler implements HandlerOptions {
   public zoomHandler: ZoomHandler
   public workspaceHandler: WorkspaceHandler
   public interactionHandler: InteractionHandler
+  public nudgeHandler: NudgeHandler
   public rulerHandler: RulerHandler
   public guideLineHandler: GuideLineHandler
   public objectHandler: ObjectHandler
@@ -120,6 +122,7 @@ class Handler implements HandlerOptions {
     this.zoomHandler = new ZoomHandler(this)
     this.workspaceHandler = new WorkspaceHandler(this)
     this.interactionHandler = new InteractionHandler(this)
+    this.nudgeHandler = new NudgeHandler(this)
     this.rulerHandler = new RulerHandler(this)
     this.guideLineHandler = new GuideLineHandler(this)
     this.objectHandler = new ObjectHandler(this)
@@ -1097,21 +1100,21 @@ class Handler implements HandlerOptions {
   /**
    * Check if the canvas is ready
    */
-  public isReady = () => {
+  public isReady() {
     return this.canvas.getObjects().length
   }
 
   /**
    * Return all objects except the workspace
    */
-  public getObjects = () => {
+  public getObjects() {
     return this.canvas.getObjects().filter(({ id }) => id !== this.workspaceOptions.id)
   }
 
   /**
    * Clear canvas
    */
-  public clear = () => {
+  public clear() {
     if (!this.isReady()) {
       return
     }
@@ -1126,7 +1129,7 @@ class Handler implements HandlerOptions {
    *
    * @param object - The object to center the canvas on
    */
-  public setCenterFromObject = (object: fabric.Object) => {
+  public setCenterFromObject(object: fabric.Object) {
     const { x, y } = object.getCenterPoint()
     const { width, height, viewportTransform } = this.canvas
 
@@ -1221,7 +1224,7 @@ class Handler implements HandlerOptions {
   /**
    * Destroy canvas
    */
-  public destroy = () => {
+  public destroy() {
     this.canvas.dispose()
     this.eventHandler.destroy()
     this.resizeObserver.disconnect()
@@ -1233,11 +1236,11 @@ class Handler implements HandlerOptions {
   /**
    * Register hotkey handlers
    */
-  public registerHotkeyHandlers = (...handler: HotkeyHandler[]) => {
-    for (const hotkey of handler) {
-      hotkeys(hotkey.key, () => {
+  public registerHotkeyHandlers(...handlers: HotkeyHandler[]) {
+    for (const hotkey of handlers) {
+      hotkeys(hotkey.key, { keyup: true }, (e) => {
         if (this.isReady()) {
-          hotkey.handler()
+          hotkey.handler(e)
           return false
         }
       })

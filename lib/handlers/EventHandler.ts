@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-empty */
 import type { fabric } from "fabric"
 import { InteractionMode } from "../utils/types"
 import type Handler from "./Handler"
@@ -14,6 +16,7 @@ class EventHandler {
   constructor(handler: Handler) {
     this.handler = handler
     this.panning = false
+
     this.initialize()
   }
 
@@ -52,7 +55,7 @@ class EventHandler {
   /**
    * Detach event on document
    */
-  public destroy = () => {
+  public destroy() {
     this.handler.canvas.off({
       // "object:modified": this.modified,
       // "object:scaling": this.scaling,
@@ -158,58 +161,6 @@ class EventHandler {
   //   }
   // }
 
-  // /**
-  //  * Moing object at keyboard arrow key down event
-  //  *
-  //  * @param {KeyboardEvent} e
-  //  * @returns
-  //  */
-  // public arrowmoving = (e: KeyboardEvent) => {
-  //   const activeObject = this.handler.canvas.getActiveObject() as FabricObject
-
-  //   if (!activeObject) {
-  //     return false
-  //   }
-
-  //   if (activeObject.id === "workarea") {
-  //     return false
-  //   }
-
-  //   if (e.code === code.ARROW_UP) {
-  //     activeObject.set("top", activeObject.top - 2)
-  //     activeObject.setCoords()
-  //     this.handler.canvas.renderAll()
-  //     return true
-  //   }
-
-  //   if (e.code === code.ARROW_DOWN) {
-  //     activeObject.set("top", activeObject.top + 2)
-  //     activeObject.setCoords()
-  //     this.handler.canvas.renderAll()
-  //     return true
-  //   }
-
-  //   if (e.code === code.ARROW_LEFT) {
-  //     activeObject.set("left", activeObject.left - 2)
-  //     activeObject.setCoords()
-  //     this.handler.canvas.renderAll()
-  //     return true
-  //   }
-
-  //   if (e.code === code.ARROW_RIGHT) {
-  //     activeObject.set("left", activeObject.left + 2)
-  //     activeObject.setCoords()
-  //     this.handler.canvas.renderAll()
-  //     return true
-  //   }
-
-  //   if (this.handler.onModified) {
-  //     this.handler.onModified(activeObject)
-  //   }
-
-  //   return true
-  // }
-
   /**
    * Zoom at mouse wheel event
    *
@@ -253,6 +204,7 @@ class EventHandler {
    * @param {FabricEvent<MouseEvent>} opt
    * @returns
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public mouseup = ({ e }: fabric.IEvent<MouseEvent>) => {
     if (this.handler.store.getState().interactionMode === InteractionMode.PAN) {
       this.handler.canvas.setCursor("grab")
@@ -291,7 +243,9 @@ class EventHandler {
    * @param {FabricEvent<MouseEvent>} opt
    */
   public mouseout = ({ target }: fabric.IEvent<MouseEvent>) => {
+    // eslint-disable-next-line no-empty
     if (!target) {
+      /* empty */
     }
   }
 

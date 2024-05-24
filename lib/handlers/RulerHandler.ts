@@ -116,7 +116,7 @@ class RulerHandler {
    * Draw the ruler
    * @param options - Ruler drawing options
    */
-  private draw = ({ isHorizontal, rulerLength, startCalibration }: RulerDrawOptions) => {
+  private draw({ isHorizontal, rulerLength, startCalibration }: RulerDrawOptions) {
     const { ruleSize, backgroundColor, borderColor, scaleColor, textColor, fontSize } =
       this.handler.rulerOptions
 
@@ -180,7 +180,7 @@ class RulerHandler {
    * Draw the active object
    * @param options - Ruler drawing options
    */
-  private drawActiveObject = ({ isHorizontal, startCalibration }: RulerDrawOptions) => {
+  private drawActiveObject({ isHorizontal, startCalibration }: RulerDrawOptions) {
     const { ruleSize, backgroundColor, fontSize, highlightColor } = this.handler.rulerOptions
     const activeObject = this.handler.canvas.getActiveObject()
 
@@ -286,7 +286,7 @@ class RulerHandler {
    * @param zoom Scaling ratio
    * @returns Return the calculated spacing between rulers
    */
-  private getGap = (zoom: number) => {
+  private getGap(zoom: number) {
     const zoomGapPairs = [
       [18, 2],
       [10, 5],
@@ -307,7 +307,7 @@ class RulerHandler {
   /**
    * Get canvas size.
    */
-  private getSize = () => {
+  private getSize() {
     return {
       width: this.handler.canvas.width ?? 0,
       height: this.handler.canvas.height ?? 0,
@@ -318,7 +318,7 @@ class RulerHandler {
    * Get the current zoom ratio
    * @returns Return the current zoom ratio
    */
-  private getZoom = () => {
+  private getZoom() {
     return this.handler.canvas.getZoom()
   }
 
@@ -444,7 +444,7 @@ class RulerHandler {
    * @param e - Mouse event object
    * @returns Return common event information
    */
-  private getCommonEventInfo = ({ e, absolutePointer }: IEvent<MouseEvent>) => {
+  private getCommonEventInfo({ e, absolutePointer }: IEvent<MouseEvent>) {
     if (!this.tempGuidelLine || !absolutePointer) return
 
     return {

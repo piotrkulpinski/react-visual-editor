@@ -8,12 +8,12 @@ class ObjectHandler {
     this.handler = handler
   }
 
-  public addObject = (object: fabric.Object) => {
+  public addObject(object: fabric.Object) {
     this.handler.canvas.add(object)
     this.handler.canvas.setActiveObject(object)
   }
 
-  public addText = (text: string) => {
+  public addText(text: string) {
     const textObject = new fabric.Textbox(text, {
       left: 10,
       top: 10,
@@ -24,7 +24,7 @@ class ObjectHandler {
     this.addObject(textObject)
   }
 
-  public addRect = () => {
+  public addRect() {
     const rect = new fabric.Rect({
       left: 10,
       top: 10,

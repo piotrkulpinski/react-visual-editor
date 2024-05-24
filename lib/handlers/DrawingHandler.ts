@@ -58,7 +58,7 @@ class DrawingHandler {
    * Draw a line
    * @param options Drawing options
    */
-  public drawLine = ({ left, top, width, height, stroke, lineWidth }: DrawLineOptions) => {
+  public drawLine({ left, top, width, height, stroke, lineWidth }: DrawLineOptions) {
     this.ctx.save()
     this.ctx.beginPath()
 
@@ -77,7 +77,7 @@ class DrawingHandler {
    * Draw text
    * @param options Drawing options
    */
-  public drawText = ({ left, top, text, fill, align, angle, fontSize }: DrawTextOptions) => {
+  public drawText({ left, top, text, fill, align, angle, fontSize }: DrawTextOptions) {
     this.ctx.save()
 
     if (fill) {
@@ -102,7 +102,7 @@ class DrawingHandler {
    * Draw a rectangle
    * @param options Drawing options
    */
-  public drawRect = ({ left, top, width, height, fill, stroke, strokeWidth }: DrawRectOptions) => {
+  public drawRect({ left, top, width, height, fill, stroke, strokeWidth }: DrawRectOptions) {
     this.ctx.save()
     this.ctx.beginPath()
 
@@ -126,14 +126,7 @@ class DrawingHandler {
    * Draw a mask
    * @param options Drawing options
    */
-  public drawMask = ({
-    isHorizontal,
-    left,
-    top,
-    width,
-    height,
-    backgroundColor,
-  }: DrawMaskOptions) => {
+  public drawMask({ isHorizontal, left, top, width, height, backgroundColor }: DrawMaskOptions) {
     this.ctx.save()
 
     // Create a linear gradient object
@@ -158,7 +151,7 @@ class DrawingHandler {
    * @param isHorizontal
    * @returns Merged array of Rectangles
    */
-  public mergeLines = (rect: Rect[], isHorizontal: boolean) => {
+  public mergeLines(rect: Rect[], isHorizontal: boolean) {
     let currentLine = Object.assign({}, rect[0])
 
     const mergedLines = []

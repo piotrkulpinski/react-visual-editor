@@ -31,7 +31,7 @@ class ZoomHandler {
    * @param x The x coordinate of the point to zoom to
    * @param y The y coordinate of the point to zoom to
    */
-  public setZoom = (zoom: number, ...coords: number[]) => {
+  public setZoom(zoom: number, ...coords: number[]) {
     const { minZoom, maxZoom } = this.handler.zoomOptions
     const normalizedZoom = Math.min(Math.max(zoom, minZoom), maxZoom)
 
@@ -50,7 +50,7 @@ class ZoomHandler {
   /**
    * Zoom in the canvas
    */
-  public setZoomIn = () => {
+  public setZoomIn() {
     const nearestZoom = this.findNearestZoomLevel("up")
     this.setZoom(nearestZoom)
   }
@@ -58,7 +58,7 @@ class ZoomHandler {
   /**
    * Zoom out the canvas
    */
-  public setZoomOut = () => {
+  public setZoomOut() {
     const nearestZoom = this.findNearestZoomLevel("down")
     this.setZoom(nearestZoom)
   }
@@ -66,7 +66,7 @@ class ZoomHandler {
   /**
    * Zoom the canvas to fit the workspace
    */
-  public setZoomToFit = () => {
+  public setZoomToFit() {
     const zoom = this.getScale()
     this.setZoom(zoom * this.handler.zoomOptions.fitRatio)
   }
@@ -77,7 +77,7 @@ class ZoomHandler {
    * @param dir - The direction to find the nearest zoom level. Can be "up" or "down".
    * @returns The nearest zoom level.
    */
-  private findNearestZoomLevel = (dir: "up" | "down") => {
+  private findNearestZoomLevel(dir: "up" | "down") {
     const zoom = this.handler.canvas.getZoom()
     const zoomSteps = this.handler.zoomOptions.steps
 
@@ -94,7 +94,7 @@ class ZoomHandler {
    *
    * @returns The scale of the canvas.
    */
-  private getScale = () => {
+  private getScale() {
     const { offsetWidth: width, offsetHeight: height } = this.handler.container
 
     // FIXME: findScaleToFit is not exported
