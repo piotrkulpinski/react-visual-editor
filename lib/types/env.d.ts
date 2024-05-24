@@ -1,6 +1,6 @@
 declare global {
-  declare module "fabric/fabric-impl" {
-    interface IObjectOptions {
+  declare module "fabric" {
+    interface FabricObject {
       id?: string | undefined
     }
   }

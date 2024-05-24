@@ -1,4 +1,4 @@
-import { fabric } from "fabric"
+import { CanvasEvents, Point } from "fabric"
 import { InteractionMode } from "../utils/types"
 import type Handler from "./Handler"
 
@@ -31,7 +31,7 @@ class InteractionHandler {
     switch (mode) {
       case InteractionMode.SELECT:
         this.handler.canvas.setCursor("default")
-        this.handler.canvas.selection = this.handler.canvasOptions?.selection
+        this.handler.canvas.selection = this.handler.canvasOptions?.selection ?? false
         break
       case InteractionMode.PAN:
         this.handler.canvas.setCursor("grab")
@@ -58,10 +58,12 @@ class InteractionHandler {
   /**
    * Moving objects in pan mode
    */
-  public moving(e: MouseEvent) {
-    const delta = new fabric.Point(e.movementX, e.movementY)
-    this.handler.canvas.relativePan(delta)
-    this.handler.canvas.requestRenderAll()
+  public moving({ e }: CanvasEvents["mouse:move"]) {
+    if (e instanceof MouseEvent) {
+      const delta = new Point(e.movementX, e.movementY)
+      this.handler.canvas.relativePan(delta)
+      this.handler.canvas.requestRenderAll()
+    }
   }
 }
 

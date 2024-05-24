@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable no-empty */
-import type { fabric } from "fabric"
+import type { CanvasEvents } from "fabric"
 import { InteractionMode } from "../utils/types"
 import type Handler from "./Handler"
 
@@ -11,11 +10,13 @@ import type Handler from "./Handler"
  */
 class EventHandler {
   handler: Handler
-  panning: boolean
+  isPanning: boolean
+  isMiddleClicked: boolean
 
   constructor(handler: Handler) {
     this.handler = handler
-    this.panning = false
+    this.isPanning = false
+    this.isMiddleClicked = false
 
     this.initialize()
   }
@@ -32,24 +33,16 @@ class EventHandler {
       // "object:moved": this.moved,
       // "object:rotating": this.rotating,
       // "object:rotated": this.rotated,
-      "mouse:wheel": this.mousewheel,
-      "mouse:down": this.mousedown,
-      "mouse:up": this.mouseup,
-      "mouse:move": this.mousemove,
+      "mouse:wheel": this.onMouseWheel,
+      "mouse:down:before": this.onMouseDownBefore,
+      "mouse:down": this.onMouseDown,
+      "mouse:up:before": this.onMouseUpBefore,
+      "mouse:up": this.onMouseUp,
+      "mouse:move": this.onMouseMove,
       // "selection:cleared": this.selection,
       // "selection:created": this.selection,
       // "selection:updated": this.selection,
     })
-
-    if (this.handler.canvas.wrapperEl) {
-      // this.handler.canvas.wrapperEl.addEventListener("keydown", this.keydown, false)
-      // this.handler.canvas.wrapperEl.addEventListener("keyup", this.keyup, false)
-      // this.handler.canvas.wrapperEl.addEventListener("mousedown", this.onmousedown, false)
-      // this.handler.canvas.wrapperEl.addEventListener("contextmenu", this.contextmenu, false)
-      // if (this.handler.keyEvent?.clipboard) {
-      //   document.addEventListener("paste", this.paste, false)
-      // }
-    }
   }
 
   /**
@@ -62,31 +55,20 @@ class EventHandler {
       // "object:moving": this.moving,
       // "object:moved": this.moved,
       // "object:rotating": this.rotating,
-      "mouse:wheel": this.mousewheel,
-      "mouse:down": this.mousedown,
-      "mouse:up": this.mouseup,
-      "mouse:move": this.mousemove,
+      "mouse:wheel": this.onMouseWheel,
+      "mouse:down:before": this.onMouseDownBefore,
+      "mouse:down": this.onMouseDown,
+      "mouse:up:before": this.onMouseUpBefore,
+      "mouse:up": this.onMouseUp,
+      "mouse:move": this.onMouseMove,
       // "selection:cleared": this.selection,
       // "selection:created": this.selection,
       // "selection:updated": this.selection,
     })
-
-    if (this.handler.canvas.wrapperEl) {
-      // this.handler.canvas.wrapperEl.removeEventListener("keydown", this.keydown)
-      // this.handler.canvas.wrapperEl.removeEventListener("keyup", this.keyup)
-      // this.handler.canvas.wrapperEl.removeEventListener("mousedown", this.onmousedown)
-      // this.handler.canvas.wrapperEl.removeEventListener("contextmenu", this.contextmenu)
-      // if (this.handler.keyEvent?.clipboard) {
-      //   this.handler.canvas.wrapperEl.removeEventListener("paste", this.paste)
-      // }
-    }
   }
 
   /**
    * Modified event object
-   *
-   * @param {FabricEvent} opt
-   * @returns
    */
   // public modified = (opt: FabricEvent) => {
   //   const { target } = opt
@@ -104,9 +86,6 @@ class EventHandler {
 
   // /**
   //  * Moving event object
-  //  *
-  //  * @param {FabricEvent} opt
-  //  * @returns
   //  */
   // public moving = ({ target }: FabricEvent) => {
   //   if (this.handler.editable && this.handler.guidelineOption.enabled) {
@@ -116,8 +95,6 @@ class EventHandler {
 
   // /**
   //  * Moved event object
-  //  *
-  //  * @param {FabricEvent} opt
   //  */
   // public moved = ({ target }: FabricEvent) => {
   //   if (!this.handler.transactionHandler.active) {
@@ -127,15 +104,11 @@ class EventHandler {
 
   // /**
   //  * Scaling event object
-  //  *
-  //  * @param {FabricEvent} opt
   //  */
   // public scaling = ({ target }: FabricEvent) => {}
 
   // /**
   //  * Scaled event object
-  //  *
-  //  * @param {FabricEvent} opt
   //  */
   // public scaled = (_opt: FabricEvent) => {
   //   if (!this.handler.transactionHandler.active) {
@@ -145,15 +118,11 @@ class EventHandler {
 
   // /**
   //  * Rotating event object
-  //  *
-  //  * @param {FabricEvent} opt
   //  */
   // public rotating = ({ target }: FabricEvent) => {}
 
   // /**
   //  * Rotated event object
-  //  *
-  //  * @param {FabricEvent} opt
   //  */
   // public rotated = (_opt: FabricEvent) => {
   //   if (!this.handler.transactionHandler.active) {
@@ -162,12 +131,9 @@ class EventHandler {
   // }
 
   /**
-   * Zoom at mouse wheel event
-   *
-   * @param {FabricEvent<WheelEvent>} opt
-   * @returns
+   * Mouse wheel event
    */
-  public mousewheel = ({ e }: fabric.IEvent<WheelEvent>) => {
+  private onMouseWheel = ({ e }: CanvasEvents["mouse:wheel"]) => {
     e.preventDefault()
     e.stopPropagation()
 
@@ -176,85 +142,68 @@ class EventHandler {
   }
 
   /**
-   * Mouse down event on object
-   *
-   * @param {FabricEvent<MouseEvent>} opt
-   * @returns
+   * Mouse down before event
    */
-  public mousedown = ({ target }: fabric.IEvent<MouseEvent>) => {
+  private onMouseDownBefore = ({ e }: CanvasEvents["mouse:down:before"]) => {
+    if (e instanceof MouseEvent && e.button === 1) {
+      this.handler.canvas.setCursor("grabbing")
+      this.isMiddleClicked = true
+    }
+  }
+
+  /**
+   * Mouse down event
+   */
+  private onMouseDown = (_: CanvasEvents["mouse:down"]) => {
     if (this.handler.store.getState().interactionMode === InteractionMode.PAN) {
       this.handler.canvas.setCursor("grabbing")
-      this.panning = true
+      this.isPanning = true
       return
     }
+  }
 
-    // if (editable) {
-    //   this.handler.guidelineHandler.viewportTransform = this.handler.canvas.viewportTransform
-    //   this.handler.guidelineHandler.zoom = this.handler.canvas.getZoom()
-    //   if (this.handler.interactionMode === "selection") {
-    //     this.handler.prevTarget = target
-    //     return
-    //   }
-    // }
+  /**
+   * Mouse up before event
+   */
+  private onMouseUpBefore = (_: CanvasEvents["mouse:up:before"]) => {
+    // TODO: Reset cursor to default state
+    // this.handler.canvas.setCursor("default")
+    this.isMiddleClicked = false
   }
 
   /**
    * Mouse up event on canvas
-   *
-   * @param {FabricEvent<MouseEvent>} opt
-   * @returns
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public mouseup = ({ e }: fabric.IEvent<MouseEvent>) => {
+  private onMouseUp = (_: CanvasEvents["mouse:up"]) => {
     if (this.handler.store.getState().interactionMode === InteractionMode.PAN) {
       this.handler.canvas.setCursor("grab")
-      this.panning = false
+      this.isPanning = false
       return
     }
-
-    // if (this.handler.guidelineOption.enabled) {
-    //   this.handler.guidelineHandler.verticalLines.length = 0
-    //   this.handler.guidelineHandler.horizontalLines.length = 0
-    // }
-
-    // this.handler.canvas.renderAll()
   }
 
   /**
    * Mouse move event on canvas
-   *
-   * @param {FabricEvent<MouseEvent>} opt
-   * @returns
    */
-  public mousemove = ({ e }: fabric.IEvent<MouseEvent>) => {
+  private onMouseMove = (e: CanvasEvents["mouse:move"]) => {
     if (this.handler.store.getState().interactionMode === InteractionMode.PAN) {
-      this.handler.canvas.setCursor(this.panning ? "grabbing" : "grab")
+      this.handler.canvas.setCursor(this.isPanning ? "grabbing" : "grab")
 
-      if (this.panning) {
+      if (this.isPanning) {
         this.handler.interactionHandler.moving(e)
-        this.handler.canvas.requestRenderAll()
       }
     }
-  }
 
-  /**
-   * Mouse out event on canvas
-   *
-   * @param {FabricEvent<MouseEvent>} opt
-   */
-  public mouseout = ({ target }: fabric.IEvent<MouseEvent>) => {
-    // eslint-disable-next-line no-empty
-    if (!target) {
-      /* empty */
+    if (this.isMiddleClicked) {
+      this.handler.canvas.setCursor("grabbing")
+      this.handler.interactionHandler.moving(e)
     }
   }
 
   /**
   //  * Selection event event on canvas
-  //  *
-  //  * @param {FabricEvent} opt
   //  */
-  // public selection = (opt: IEvent<MouseEvent>) => {
+  // private selection = (opt: IEvent<MouseEvent>) => {
   //   const { onSelect, activeSelectionOption } = this.handler
   //   const target = opt.target as FabricObject<fabric.ActiveSelection>
   //   if (target && target.type === "activeSelection") {
@@ -269,10 +218,6 @@ class EventHandler {
 
   // /**
   //  * Called resize event on canvas
-  //  *
-  //  * @param {number} nextWidth
-  //  * @param {number} nextHeight
-  //  * @returns
   //  */
   // public resize = (nextWidth: number, nextHeight: number) => {
   //   this.handler.canvas.setWidth(nextWidth).setHeight(nextHeight)
@@ -339,9 +284,6 @@ class EventHandler {
 
   // /**
   //  * Paste event on canvas
-  //  *
-  //  * @param {ClipboardEvent} e
-  //  * @returns
   //  */
   // public paste = async (e: ClipboardEvent) => {
   //   if (this.handler.canvas.wrapperEl !== document.activeElement) {
@@ -439,8 +381,6 @@ class EventHandler {
 
   /**
    * Keydown event on document
-   *
-   * @param {KeyboardEvent} e
    */
   // public keydown = (e: KeyboardEvent) => {
   //   const { keyEvent, editable } = this.handler
@@ -511,8 +451,6 @@ class EventHandler {
 
   // /**
   //  * Key up event on canvas
-  //  *
-  //  * @param {KeyboardEvent} e
   //  */
   // public keyup = (e: KeyboardEvent) => {
   //   if (!this.handler.shortcutHandler.isW(e)) {
@@ -522,8 +460,6 @@ class EventHandler {
 
   // /**
   //  * Context menu event on canvas
-  //  *
-  //  * @param {MouseEvent} e
   //  */
   // public contextmenu = (e: MouseEvent) => {
   //   e.preventDefault()
@@ -539,8 +475,6 @@ class EventHandler {
 
   // /**
   //  * Mouse down event on canvas
-  //  *
-  //  * @param {MouseEvent} _e
   //  */
   // public onmousedown = (_e: MouseEvent) => {
   //   this.handler.contextmenuHandler.hide()

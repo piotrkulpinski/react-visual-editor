@@ -1,5 +1,9 @@
-import type { fabric } from "fabric"
-import type { ICanvasOptions } from "fabric/fabric-impl"
+import type {
+  Canvas as FabricCanvas,
+  Rect as FabricRect,
+  CanvasOptions,
+  FabricObject,
+} from "fabric"
 import type Handler from "../handlers/Handler"
 
 export type HandlerCallback = {
@@ -7,13 +11,13 @@ export type HandlerCallback = {
    * When has been added object in Canvas, Called function
    *
    */
-  onAdd?: (object: fabric.Object) => void
+  onAdd?: (object: FabricObject) => void
 
   /**
    * Return contextmenu element
    *
    */
-  onContext?: (el: HTMLDivElement, e: MouseEvent, target?: fabric.Object) => Promise<any> | any
+  onContext?: (el: HTMLDivElement, e: MouseEvent, target?: FabricObject) => Promise<any> | any
 
   /**
    * When zoom, Called function
@@ -24,30 +28,30 @@ export type HandlerCallback = {
    * When clicked object, Called function
    *
    */
-  onClick?: (canvas: fabric.Canvas, target: fabric.Object) => void
+  onClick?: (canvas: FabricCanvas, target: FabricObject) => void
 
   /**
    * When double clicked object, Called function
    *
    */
-  onDblClick?: (canvas: fabric.Canvas, target: fabric.Object) => void
+  onDblClick?: (canvas: FabricCanvas, target: FabricObject) => void
 
   /**
    * When modified object, Called function
    */
-  onModified?: (target: fabric.Object) => void
+  onModified?: (target: FabricObject) => void
 
   /**
    * When select object, Called function
    *
    */
-  onSelect?: (target: fabric.Object) => void
+  onSelect?: (target: FabricObject) => void
 
   /**
    * When has been removed object in Canvas, Called function
    *
    */
-  onRemove?: (target: fabric.Object) => void
+  onRemove?: (target: FabricObject) => void
 
   /**
    * When has been undo or redo, Called function
@@ -65,7 +69,7 @@ export type HandlerCallback = {
    * When canvas has been loaded
    *
    */
-  onLoad?: (handler: Handler, canvas?: fabric.Canvas) => void
+  onLoad?: (handler: Handler, canvas?: FabricCanvas) => void
 }
 
 export type HandlerOptions = HandlerCallback & {
@@ -77,12 +81,12 @@ export type HandlerOptions = HandlerCallback & {
   /**
    * Canvas object
    */
-  canvas: fabric.Canvas
+  canvas: FabricCanvas
 
   /**
    * Canvas options
    */
-  canvasOptions?: ICanvasOptions
+  canvasOptions?: Partial<CanvasOptions>
 
   /**
    * Canvas parent element
@@ -186,7 +190,7 @@ export type RulerOptions = {
   highlightColor: string
 }
 
-export type WorkspaceOptions = Partial<fabric.Rect>
+export type WorkspaceOptions = Partial<FabricRect>
 
 export type HotkeyHandler = {
   key: string
