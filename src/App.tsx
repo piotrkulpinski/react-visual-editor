@@ -16,9 +16,7 @@ export default function App() {
       <Nav />
 
       <div className="flex h-[calc(100%-48px)] bg-radial bg-[length:15px_15px] bg-center">
-        <Sidebar>
-          <SidebarLeft />
-        </Sidebar>
+        <Sidebar>{handler && <SidebarLeft handler={handler} />}</Sidebar>
 
         <div className="relative flex flex-col flex-1 w-full overflow-clip">
           {/* <nav className="relative z-10 h-10 shrink-0 px-4 bg-white shadow-outline">

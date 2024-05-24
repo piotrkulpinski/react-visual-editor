@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { throttle } from "radash"
-import type { HighlightRect, RulerOptions } from "../utils/types"
+import type { RulerOptions } from "../utils/types"
 import type Handler from "./Handler"
 import { IEvent } from "fabric/fabric-impl"
 
@@ -29,16 +30,6 @@ class RulerHandler {
   handler: Handler
 
   /**
-   * Selecting rectangle coordinates
-   */
-  private selectedObject:
-    | undefined
-    | {
-        x: HighlightRect[]
-        y: HighlightRect[]
-      }
-
-  /**
    * Active status of the ruler
    */
   private activeOn: "down" | "up" = "up"
@@ -61,12 +52,10 @@ class RulerHandler {
    * Caching event handlers
    */
   private eventHandler = {
-    calcObjectRect: throttle({ interval: 15 }, this.calcObjectRect.bind(this)),
-    clearStatus: this.clearStatus.bind(this),
     canvasMouseDown: this.canvasMouseDown.bind(this),
     canvasMouseMove: throttle({ interval: 25 }, this.canvasMouseMove.bind(this)),
     canvasMouseUp: this.canvasMouseUp.bind(this),
-    render: () => this.render(),
+    render: this.render.bind(this),
   }
 
   constructor(handler: Handler) {
@@ -74,21 +63,16 @@ class RulerHandler {
 
     // Bind events
     // TODO: Unbind events on destroy
-    this.handler.canvas.on("after:render", this.eventHandler.calcObjectRect)
     this.handler.canvas.on("after:render", this.eventHandler.render)
     // this.handler.canvas.on("mouse:down", this.eventHandler.canvasMouseDown)
     // this.handler.canvas.on("mouse:up", this.eventHandler.canvasMouseUp)
     // this.handler.canvas.on("mouse:move", this.eventHandler.canvasMouseMove)
-    this.handler.canvas.on("selection:cleared", this.eventHandler.clearStatus)
-
-    // Render the ruler
-    this.render()
   }
 
   /**
    * Render the vertical and horizontal rulers
    */
-  public render = () => {
+  public render() {
     const { ruleSize, backgroundColor } = this.handler.rulerOptions
 
     const vpt = this.handler.canvas.viewportTransform
@@ -126,16 +110,6 @@ class RulerHandler {
       height: ruleSize * 2 + 10,
       backgroundColor: backgroundColor,
     })
-  }
-
-  /**
-   * Get canvas size.
-   */
-  private getSize = () => {
-    return {
-      width: this.handler.canvas.width ?? 0,
-      height: this.handler.canvas.height ?? 0,
-    }
   }
 
   /**
@@ -198,112 +172,112 @@ class RulerHandler {
       })
     }
 
-    // Draw selected object if exists
-    this.drawSelectedObject({ isHorizontal, rulerLength, startCalibration })
+    // Draw active object if exists
+    this.drawActiveObject({ isHorizontal, rulerLength, startCalibration })
   }
 
   /**
-   * Draw the selected object
+   * Draw the active object
    * @param options - Ruler drawing options
    */
-  private drawSelectedObject = ({ isHorizontal, startCalibration }: RulerDrawOptions) => {
+  private drawActiveObject = ({ isHorizontal, startCalibration }: RulerDrawOptions) => {
     const { ruleSize, backgroundColor, fontSize, highlightColor } = this.handler.rulerOptions
-    const axis = isHorizontal ? "x" : "y"
-    const zoom = this.getZoom()
+    const activeObject = this.handler.canvas.getActiveObject()
 
-    if (!this.selectedObject) {
+    if (!activeObject) {
       return
     }
 
-    for (const rect of this.selectedObject[axis].filter((rect) => !rect.skip)) {
-      // Obtain the value of the number
-      const roundFactor = (x: number) => `${Math.round(x / zoom + startCalibration)}`
-      const leftTextVal = roundFactor(isHorizontal ? rect.left : rect.top)
-      const rightTextVal = roundFactor(
-        isHorizontal ? rect.left + rect.width : rect.top + rect.height
-      )
+    const object = activeObject.getBoundingRect(false, true)
+    const zoom = this.getZoom()
 
-      const isSameText = leftTextVal === rightTextVal
+    // Obtain the value of the number
+    const roundFactor = (x: number) => `${Math.round(x / zoom + startCalibration)}`
 
-      // Background mask
-      const maskOpt = {
-        isHorizontal,
-        width: isHorizontal ? 160 : ruleSize - 8,
-        height: isHorizontal ? ruleSize - 8 : 160,
-        backgroundColor: backgroundColor,
-      }
+    const [leftTextVal, rightTextVal] = isHorizontal
+      ? [roundFactor(object.left), roundFactor(object.left + object.width)]
+      : [roundFactor(object.top), roundFactor(object.top + object.height)]
 
+    const isSameText = leftTextVal === rightTextVal
+
+    // Background mask
+    const maskOpt = {
+      isHorizontal,
+      width: isHorizontal ? 160 : ruleSize - 8,
+      height: isHorizontal ? ruleSize - 8 : 160,
+      backgroundColor: backgroundColor,
+    }
+
+    this.handler.drawingHandler.drawMask({
+      ...maskOpt,
+      left: isHorizontal ? object.left - 80 : 0,
+      top: isHorizontal ? 0 : object.top - 80,
+    })
+
+    if (!isSameText) {
       this.handler.drawingHandler.drawMask({
         ...maskOpt,
-        left: isHorizontal ? rect.left - 80 : 0,
-        top: isHorizontal ? 0 : rect.top - 80,
+        left: isHorizontal ? object.width + object.left - 80 : 0,
+        top: isHorizontal ? 0 : object.height + object.top - 80,
       })
+    }
 
-      if (!isSameText) {
-        this.handler.drawingHandler.drawMask({
-          ...maskOpt,
-          left: isHorizontal ? rect.width + rect.left - 80 : 0,
-          top: isHorizontal ? 0 : rect.height + rect.top - 80,
-        })
-      }
+    // Highlight mask
+    this.handler.drawingHandler.drawRect({
+      left: isHorizontal ? object.left : ruleSize - 6,
+      top: isHorizontal ? ruleSize - 6 : object.top,
+      width: isHorizontal ? object.width : 6,
+      height: isHorizontal ? 6 : object.height,
+      fill: `${highlightColor}aa`,
+    })
 
-      // Highlight mask
-      this.handler.drawingHandler.drawRect({
-        left: isHorizontal ? rect.left : ruleSize - 6,
-        top: isHorizontal ? ruleSize - 6 : rect.top,
-        width: isHorizontal ? rect.width : 6,
-        height: isHorizontal ? 6 : rect.height,
-        fill: `${highlightColor}aa`,
-      })
+    // Numbers on both sides
+    const pad = ruleSize / 2 - fontSize / 2 - 2
 
-      // Numbers on both sides
-      const pad = ruleSize / 2 - fontSize / 2 - 2
+    const textOpt = {
+      fill: highlightColor,
+      angle: isHorizontal ? 0 : -90,
+    }
 
-      const textOpt = {
-        fill: highlightColor,
-        angle: isHorizontal ? 0 : -90,
-      }
+    this.handler.drawingHandler.drawText({
+      ...textOpt,
+      text: leftTextVal,
+      left: isHorizontal ? object.left - 2 : pad,
+      top: isHorizontal ? pad : object.top - 2,
+      align: isSameText ? "center" : isHorizontal ? "right" : "left",
+    })
 
+    if (!isSameText) {
       this.handler.drawingHandler.drawText({
         ...textOpt,
-        text: leftTextVal,
-        left: isHorizontal ? rect.left - 2 : pad,
-        top: isHorizontal ? pad : rect.top - 2,
-        align: isSameText ? "center" : isHorizontal ? "right" : "left",
+        text: rightTextVal,
+        left: isHorizontal ? object.left + object.width + 2 : pad,
+        top: isHorizontal ? pad : object.top + object.height + 2,
+        align: isHorizontal ? "left" : "right",
       })
+    }
 
-      if (!isSameText) {
-        this.handler.drawingHandler.drawText({
-          ...textOpt,
-          text: rightTextVal,
-          left: isHorizontal ? rect.left + rect.width + 2 : pad,
-          top: isHorizontal ? pad : rect.top + rect.height + 2,
-          align: isHorizontal ? "left" : "right",
-        })
-      }
+    // Lines on both sides
+    const lineSize = isSameText ? 6 : 12
 
-      // Lines on both sides
-      const lineSize = isSameText ? 6 : 12
+    const lineOpt = {
+      width: isHorizontal ? 0 : lineSize,
+      height: isHorizontal ? lineSize : 0,
+      stroke: highlightColor,
+    }
 
-      const lineOpt = {
-        width: isHorizontal ? 0 : lineSize,
-        height: isHorizontal ? lineSize : 0,
-        stroke: highlightColor,
-      }
+    this.handler.drawingHandler.drawLine({
+      ...lineOpt,
+      left: isHorizontal ? object.left : ruleSize - lineSize,
+      top: isHorizontal ? ruleSize - lineSize : object.top,
+    })
 
+    if (!isSameText) {
       this.handler.drawingHandler.drawLine({
         ...lineOpt,
-        left: isHorizontal ? rect.left : ruleSize - lineSize,
-        top: isHorizontal ? ruleSize - lineSize : rect.top,
+        left: isHorizontal ? object.left + object.width : ruleSize - lineSize,
+        top: isHorizontal ? ruleSize - lineSize : object.top + object.height,
       })
-
-      if (!isSameText) {
-        this.handler.drawingHandler.drawLine({
-          ...lineOpt,
-          left: isHorizontal ? rect.left + rect.width : ruleSize - lineSize,
-          top: isHorizontal ? ruleSize - lineSize : rect.top + rect.height,
-        })
-      }
     }
   }
 
@@ -331,73 +305,21 @@ class RulerHandler {
   }
 
   /**
+   * Get canvas size.
+   */
+  private getSize = () => {
+    return {
+      width: this.handler.canvas.width ?? 0,
+      height: this.handler.canvas.height ?? 0,
+    }
+  }
+
+  /**
    * Get the current zoom ratio
    * @returns Return the current zoom ratio
    */
   private getZoom = () => {
     return this.handler.canvas.getZoom()
-  }
-
-  /**
-   * Calculate the coordinates of the object rectangle
-   */
-  private calcObjectRect() {
-    const activeObjects = this.handler.canvas.getActiveObjects()
-
-    if (activeObjects.length === 0) {
-      return
-    }
-
-    const allRect = activeObjects.reduce((rects, obj) => {
-      const rect: HighlightRect = obj.getBoundingRect(false, true)
-
-      // Calculate coordinates separately for grouped objects
-      if (obj.group) {
-        const group = {
-          top: 0,
-          left: 0,
-          width: 0,
-          height: 0,
-          scaleX: 1,
-          scaleY: 1,
-          ...obj.group,
-        }
-
-        // Calculate rectangle coordinates
-        const groupCenterX = group.width / 2 + group.left
-        const objectOffsetFromCenterX = (group.width / 2 + (obj.left ?? 0)) * (1 - group.scaleX)
-        const groupCenterY = group.height / 2 + group.top
-        const objectOffsetFromCenterY = (group.height / 2 + (obj.top ?? 0)) * (1 - group.scaleY)
-
-        rect.left += (groupCenterX - objectOffsetFromCenterX) * this.getZoom()
-        rect.top += (groupCenterY - objectOffsetFromCenterY) * this.getZoom()
-        rect.width *= group.scaleX
-        rect.height *= group.scaleY
-      }
-
-      if (obj instanceof fabric.GuideLine) {
-        rect.skip = obj.isHorizontal() ? "x" : "y"
-      }
-
-      rects.push(rect)
-      return rects
-    }, [] as HighlightRect[])
-
-    if (allRect.length === 0) {
-      return
-    }
-
-    this.selectedObject = {
-      x: this.handler.drawingHandler.mergeLines(allRect, true),
-      y: this.handler.drawingHandler.mergeLines(allRect, false),
-    }
-  }
-
-  /**
-   * Clear starting point and rectangle coordinates
-   */
-  private clearStatus() {
-    this.selectedObject = undefined
   }
 
   /**

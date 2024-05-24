@@ -18,6 +18,7 @@ import ZoomHandler, { defaultZoomOptions } from "./ZoomHandler"
 import RulerHandler, { defaultRulerOptions } from "./RulerHandler"
 import DrawingHandler from "./DrawingHandler"
 import GuideLineHandler from "./GuideLineHandler"
+import ObjectHandler from "./ObjectHandler"
 
 export type HandlerStore = {
   zoom: number
@@ -67,6 +68,7 @@ class Handler implements HandlerOptions {
   public interactionHandler: InteractionHandler
   public rulerHandler: RulerHandler
   public guideLineHandler: GuideLineHandler
+  public objectHandler: ObjectHandler
   public eventHandler: EventHandler
   // public imageHandler: ImageHandler
   // public contextmenuHandler: ContextmenuHandler
@@ -120,6 +122,7 @@ class Handler implements HandlerOptions {
     this.interactionHandler = new InteractionHandler(this)
     this.rulerHandler = new RulerHandler(this)
     this.guideLineHandler = new GuideLineHandler(this)
+    this.objectHandler = new ObjectHandler(this)
     // this.imageHandler = new ImageHandler(this)
     // this.contextmenuHandler = new ContextmenuHandler(this)
     // this.transactionHandler = new TransactionHandler(this)
