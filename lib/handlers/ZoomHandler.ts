@@ -1,4 +1,4 @@
-import { fabric } from "fabric"
+import { Point, util } from "fabric"
 import type { ZoomOptions } from "../utils/types"
 import type Handler from "./Handler"
 
@@ -36,7 +36,7 @@ class ZoomHandler {
     const normalizedZoom = Math.min(Math.max(zoom, minZoom), maxZoom)
 
     if (coords.length) {
-      this.handler.canvas.zoomToPoint(new fabric.Point(coords[0], coords[1]), normalizedZoom)
+      this.handler.canvas.zoomToPoint(new Point(coords[0], coords[1]), normalizedZoom)
     } else {
       this.handler.canvas.setZoom(normalizedZoom)
       this.handler.setCenterFromObject(this.handler.workspace)
@@ -95,13 +95,13 @@ class ZoomHandler {
    * @returns The scale of the canvas.
    */
   private getScale() {
-    const { offsetWidth: width, offsetHeight: height } = this.handler.container
+    const { offsetWidth, offsetHeight } = this.handler.container
+    const { width, height } = this.handler.workspace
 
-    // FIXME: findScaleToFit is not exported
-    return (fabric.util as any).findScaleToFit(this.handler.workspace, {
-      width,
-      height,
-    }) as number
+    return util.findScaleToFit(
+      { width: width ?? 0, height: height ?? 0 },
+      { width: offsetWidth, height: offsetHeight }
+    )
   }
 }
 

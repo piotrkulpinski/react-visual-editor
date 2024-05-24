@@ -1,4 +1,5 @@
-import { fabric } from "fabric"
+/** eslint-disable react-hooks/exhaustive-deps */
+import { Canvas as FabricCanvas, CanvasOptions } from "fabric"
 import {
   type HTMLAttributes,
   createRef,
@@ -6,16 +7,18 @@ import {
   useEffect,
   useImperativeHandle,
   useState,
+  useRef,
 } from "react"
 import { v4 as uuid } from "uuid"
 import Handler from "../handlers/Handler"
 
 type CanvasProps = HTMLAttributes<HTMLDivElement> & {
-  options?: fabric.ICanvasOptions
+  options?: Partial<CanvasOptions>
 }
 
 export const Canvas = forwardRef<Handler, CanvasProps>(({ options, ...props }, ref) => {
   const containerRef = createRef<HTMLDivElement>()
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [handler, setHandler] = useState<Handler>()
 
   const canvasOptions = Object.assign(
@@ -26,11 +29,11 @@ export const Canvas = forwardRef<Handler, CanvasProps>(({ options, ...props }, r
       selection: true,
       defaultCursor: "default",
     },
-    options,
+    options
   )
 
   useEffect(() => {
-    const canvas = new fabric.Canvas("canvas", canvasOptions)
+    const canvas = new FabricCanvas("canvas", canvasOptions)
 
     canvas.setDimensions({
       width: containerRef.current?.clientWidth ?? 0,
@@ -50,6 +53,7 @@ export const Canvas = forwardRef<Handler, CanvasProps>(({ options, ...props }, r
     return () => {
       handlerInstance.destroy()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Handler ref

@@ -1,5 +1,3 @@
-import type { fabric } from "fabric"
-import type { ICanvasOptions } from "fabric/fabric-impl"
 import hotkeys from "hotkeys-js"
 import { debounce } from "radash"
 import { type StoreApi, createStore } from "zustand"
@@ -18,9 +16,10 @@ import ZoomHandler, { defaultZoomOptions } from "./ZoomHandler"
 import NudgeHandler from "./NudgeHandler"
 import RulerHandler, { defaultRulerOptions } from "./RulerHandler"
 import DrawingHandler from "./DrawingHandler"
-import GuideLineHandler from "./GuideLineHandler"
 import ObjectHandler from "./ObjectHandler"
 import ControlsHandler from "./ControlsHandler"
+import { Canvas, CanvasOptions, FabricObject } from "fabric"
+import { Rect } from "fabric"
 
 export type HandlerStore = {
   zoom: number
@@ -33,11 +32,11 @@ export type HandlerStore = {
  */
 class Handler implements HandlerOptions {
   public id: string
-  public canvas: fabric.Canvas
-  public canvasOptions?: ICanvasOptions
+  public canvas: Canvas
+  public canvasOptions?: Partial<CanvasOptions>
   public container: HTMLDivElement
   public store: StoreApi<HandlerStore>
-  public workspace!: fabric.Rect
+  public workspace!: Rect
   public resizeObserver: ResizeObserver
 
   public zoomOptions: ZoomOptions
@@ -52,17 +51,17 @@ class Handler implements HandlerOptions {
   // public activeSelectionOption?: Partial<FabricObjectOption<fabric.ActiveSelection>> =
   //   defaults.activeSelectionOption
 
-  public onAdd?: (object: fabric.Object) => void
-  public onContext?: (el: HTMLDivElement, e: MouseEvent, target?: fabric.Object) => Promise<unknown>
+  public onAdd?: (object: FabricObject) => void
+  public onContext?: (el: HTMLDivElement, e: MouseEvent, target?: FabricObject) => Promise<unknown>
   public onZoom?: (zoomRatio: number) => void
-  public onClick?: (canvas: fabric.Canvas, target: fabric.Object) => void
-  public onDblClick?: (canvas: fabric.Canvas, target: fabric.Object) => void
-  public onModified?: (target: fabric.Object) => void
-  public onSelect?: (target: fabric.Object) => void
-  public onRemove?: (target: fabric.Object) => void
+  public onClick?: (canvas: Canvas, target: FabricObject) => void
+  public onDblClick?: (canvas: Canvas, target: FabricObject) => void
+  public onModified?: (target: FabricObject) => void
+  public onSelect?: (target: FabricObject) => void
+  public onRemove?: (target: FabricObject) => void
   // public onTransaction?: (transaction: TransactionEvent) => void
   public onInteraction?: (interactionMode: InteractionMode) => void
-  public onLoad?: (handler: Handler, canvas?: fabric.Canvas) => void
+  public onLoad?: (handler: Handler, canvas?: Canvas) => void
 
   public drawingHandler: DrawingHandler
   public zoomHandler: ZoomHandler
@@ -70,7 +69,6 @@ class Handler implements HandlerOptions {
   public interactionHandler: InteractionHandler
   public nudgeHandler: NudgeHandler
   public rulerHandler: RulerHandler
-  public guideLineHandler: GuideLineHandler
   public objectHandler: ObjectHandler
   public controlsHandler: ControlsHandler
   public eventHandler: EventHandler
@@ -126,7 +124,6 @@ class Handler implements HandlerOptions {
     this.interactionHandler = new InteractionHandler(this)
     this.nudgeHandler = new NudgeHandler(this)
     this.rulerHandler = new RulerHandler(this)
-    this.guideLineHandler = new GuideLineHandler(this)
     this.objectHandler = new ObjectHandler(this)
     this.controlsHandler = new ControlsHandler(this)
     // this.imageHandler = new ImageHandler(this)
@@ -1132,7 +1129,7 @@ class Handler implements HandlerOptions {
    *
    * @param object - The object to center the canvas on
    */
-  public setCenterFromObject(object: fabric.Object) {
+  public setCenterFromObject(object: Rect) {
     const { x, y } = object.getCenterPoint()
     const { width, height, viewportTransform } = this.canvas
 

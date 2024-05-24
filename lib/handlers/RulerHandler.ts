@@ -1,8 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { throttle } from "radash"
-import type { RulerOptions } from "../utils/types"
+import type { Rect, RulerOptions } from "../utils/types"
 import type Handler from "./Handler"
-import { IEvent } from "fabric/fabric-impl"
 
 export const defaultRulerOptions: RulerOptions = {
   ruleSize: 20,
@@ -12,12 +9,6 @@ export const defaultRulerOptions: RulerOptions = {
   highlightColor: "#007fff",
   textColor: "#888888",
   scaleColor: "#d4d4d4",
-}
-
-type RulerAttributes = {
-  hoverStatus: "out" | "horizontal" | "vertical"
-  cursor: string | undefined
-  selection: boolean | undefined
 }
 
 type RulerDrawOptions = {
@@ -30,31 +21,9 @@ class RulerHandler {
   handler: Handler
 
   /**
-   * Active status of the ruler
-   */
-  private activeOn: "down" | "up" = "up"
-
-  /**
-   * Last attributes of the ruler
-   */
-  private lastAttr: RulerAttributes = {
-    hoverStatus: "out",
-    cursor: undefined,
-    selection: undefined,
-  }
-
-  /**
-   * Temporary guideline
-   */
-  private tempGuidelLine: fabric.GuideLine | undefined
-
-  /**
    * Caching event handlers
    */
   private eventHandler = {
-    canvasMouseDown: this.canvasMouseDown.bind(this),
-    canvasMouseMove: throttle({ interval: 25 }, this.canvasMouseMove.bind(this)),
-    canvasMouseUp: this.canvasMouseUp.bind(this),
     render: this.render.bind(this),
   }
 
@@ -64,9 +33,6 @@ class RulerHandler {
     // Bind events
     // TODO: Unbind events on destroy
     this.handler.canvas.on("after:render", this.eventHandler.render)
-    // this.handler.canvas.on("mouse:down", this.eventHandler.canvasMouseDown)
-    // this.handler.canvas.on("mouse:up", this.eventHandler.canvasMouseUp)
-    // this.handler.canvas.on("mouse:move", this.eventHandler.canvasMouseMove)
   }
 
   /**
@@ -182,102 +148,133 @@ class RulerHandler {
    */
   private drawActiveObject({ isHorizontal, startCalibration }: RulerDrawOptions) {
     const { ruleSize, backgroundColor, fontSize, highlightColor } = this.handler.rulerOptions
-    const activeObject = this.handler.canvas.getActiveObject()
+    const activeObjects = this.handler.canvas.getActiveObjects()
+    const axis = isHorizontal ? "x" : "y"
 
-    if (!activeObject) {
+    if (!activeObjects.length) {
       return
     }
 
-    const object = activeObject.getBoundingRect(false, true)
-    const zoom = this.getZoom()
+    const allRect = activeObjects.reduce((rects, obj) => {
+      const rect = obj.getBoundingRect()
 
-    // Obtain the value of the number
-    const roundFactor = (x: number) => `${Math.round(x / zoom + startCalibration)}`
+      // Calculate coordinates separately for grouped objects
+      if (obj.group) {
+        // Calculate rectangle coordinates
+        const groupCenterX = obj.group.width / 2 + obj.group.left
+        const objectOffsetFromCenterX =
+          (obj.group.width / 2 + (obj.left ?? 0)) * (1 - obj.group.scaleX)
+        const groupCenterY = obj.group.height / 2 + obj.group.top
+        const objectOffsetFromCenterY =
+          (obj.group.height / 2 + (obj.top ?? 0)) * (1 - obj.group.scaleY)
 
-    const [leftTextVal, rightTextVal] = isHorizontal
-      ? [roundFactor(object.left), roundFactor(object.left + object.width)]
-      : [roundFactor(object.top), roundFactor(object.top + object.height)]
+        rect.left += (groupCenterX - objectOffsetFromCenterX) * this.getZoom()
+        rect.top += (groupCenterY - objectOffsetFromCenterY) * this.getZoom()
+        rect.width *= obj.group.scaleX
+        rect.height *= obj.group.scaleY
+      }
 
-    const isSameText = leftTextVal === rightTextVal
+      rects.push(rect)
+      return rects
+    }, [] as Rect[])
 
-    // Background mask
-    const maskOpt = {
-      isHorizontal,
-      width: isHorizontal ? 160 : ruleSize - 8,
-      height: isHorizontal ? ruleSize - 8 : 160,
-      backgroundColor: backgroundColor,
+    const objects = {
+      x: this.handler.drawingHandler.mergeLines(allRect, true),
+      y: this.handler.drawingHandler.mergeLines(allRect, false),
     }
 
-    this.handler.drawingHandler.drawMask({
-      ...maskOpt,
-      left: isHorizontal ? object.left - 80 : 0,
-      top: isHorizontal ? 0 : object.top - 80,
-    })
+    // const object = activeObject.getBoundingRect()
+    const zoom = this.getZoom()
+    for (const object of objects[axis]) {
+      console.log(object)
+      // Obtain the value of the number
+      const roundFactor = (x: number) => `${Math.round(x / zoom + startCalibration)}`
 
-    if (!isSameText) {
+      const [leftTextVal, rightTextVal] = isHorizontal
+        ? [roundFactor(object.left), roundFactor(object.left + object.width)]
+        : [roundFactor(object.top), roundFactor(object.top + object.height)]
+
+      const isSameText = leftTextVal === rightTextVal
+
+      // Background mask
+      const maskOpt = {
+        isHorizontal,
+        width: isHorizontal ? 160 : ruleSize - 8,
+        height: isHorizontal ? ruleSize - 8 : 160,
+        backgroundColor: backgroundColor,
+      }
+
       this.handler.drawingHandler.drawMask({
         ...maskOpt,
-        left: isHorizontal ? object.width + object.left - 80 : 0,
-        top: isHorizontal ? 0 : object.height + object.top - 80,
+        left: isHorizontal ? object.left - 80 : 0,
+        top: isHorizontal ? 0 : object.top - 80,
       })
-    }
 
-    // Highlight mask
-    this.handler.drawingHandler.drawRect({
-      left: isHorizontal ? object.left : ruleSize - 6,
-      top: isHorizontal ? ruleSize - 6 : object.top,
-      width: isHorizontal ? object.width : 6,
-      height: isHorizontal ? 6 : object.height,
-      fill: `${highlightColor}aa`,
-    })
+      if (!isSameText) {
+        this.handler.drawingHandler.drawMask({
+          ...maskOpt,
+          left: isHorizontal ? object.width + object.left - 80 : 0,
+          top: isHorizontal ? 0 : object.height + object.top - 80,
+        })
+      }
 
-    // Numbers on both sides
-    const pad = ruleSize / 2 - fontSize / 2 - 2
+      // Highlight mask
+      this.handler.drawingHandler.drawRect({
+        left: isHorizontal ? object.left : ruleSize - 6,
+        top: isHorizontal ? ruleSize - 6 : object.top,
+        width: isHorizontal ? object.width : 6,
+        height: isHorizontal ? 6 : object.height,
+        fill: `${highlightColor}aa`,
+      })
 
-    const textOpt = {
-      fill: highlightColor,
-      angle: isHorizontal ? 0 : -90,
-    }
+      // Numbers on both sides
+      const pad = ruleSize / 2 - fontSize / 2 - 2
 
-    this.handler.drawingHandler.drawText({
-      ...textOpt,
-      text: leftTextVal,
-      left: isHorizontal ? object.left - 2 : pad,
-      top: isHorizontal ? pad : object.top - 2,
-      align: isSameText ? "center" : isHorizontal ? "right" : "left",
-    })
+      const textOpt = {
+        fill: highlightColor,
+        angle: isHorizontal ? 0 : -90,
+      }
 
-    if (!isSameText) {
       this.handler.drawingHandler.drawText({
         ...textOpt,
-        text: rightTextVal,
-        left: isHorizontal ? object.left + object.width + 2 : pad,
-        top: isHorizontal ? pad : object.top + object.height + 2,
-        align: isHorizontal ? "left" : "right",
+        text: leftTextVal,
+        left: isHorizontal ? object.left - 2 : pad,
+        top: isHorizontal ? pad : object.top - 2,
+        align: isSameText ? "center" : isHorizontal ? "right" : "left",
       })
-    }
 
-    // Lines on both sides
-    const lineSize = isSameText ? 6 : 12
+      if (!isSameText) {
+        this.handler.drawingHandler.drawText({
+          ...textOpt,
+          text: rightTextVal,
+          left: isHorizontal ? object.left + object.width + 2 : pad,
+          top: isHorizontal ? pad : object.top + object.height + 2,
+          align: isHorizontal ? "left" : "right",
+        })
+      }
 
-    const lineOpt = {
-      width: isHorizontal ? 0 : lineSize,
-      height: isHorizontal ? lineSize : 0,
-      stroke: highlightColor,
-    }
+      // Lines on both sides
+      const lineSize = isSameText ? 6 : 12
 
-    this.handler.drawingHandler.drawLine({
-      ...lineOpt,
-      left: isHorizontal ? object.left : ruleSize - lineSize,
-      top: isHorizontal ? ruleSize - lineSize : object.top,
-    })
+      const lineOpt = {
+        width: isHorizontal ? 0 : lineSize,
+        height: isHorizontal ? lineSize : 0,
+        stroke: highlightColor,
+      }
 
-    if (!isSameText) {
       this.handler.drawingHandler.drawLine({
         ...lineOpt,
-        left: isHorizontal ? object.left + object.width : ruleSize - lineSize,
-        top: isHorizontal ? ruleSize - lineSize : object.top + object.height,
+        left: isHorizontal ? object.left : ruleSize - lineSize,
+        top: isHorizontal ? ruleSize - lineSize : object.top,
       })
+
+      if (!isSameText) {
+        this.handler.drawingHandler.drawLine({
+          ...lineOpt,
+          left: isHorizontal ? object.left + object.width : ruleSize - lineSize,
+          top: isHorizontal ? ruleSize - lineSize : object.top + object.height,
+        })
+      }
     }
   }
 
@@ -320,139 +317,6 @@ class RulerHandler {
    */
   private getZoom() {
     return this.handler.canvas.getZoom()
-  }
-
-  /**
-   * Check if the mouse is on the ruler
-   * @param point
-   * @returns "vertical" | "horizontal" | false
-   */
-  public isPointOnRuler({ x, y }: fabric.Point) {
-    const { ruleSize } = this.handler.rulerOptions
-
-    if (x >= 0 && x <= ruleSize) {
-      return "vertical"
-    }
-
-    if (y >= 0 && y <= ruleSize) {
-      return "horizontal"
-    }
-
-    return false
-  }
-
-  /**
-   * Mouse down event on canvas
-   * @param e - Mouse down event
-   */
-  private canvasMouseDown(e: IEvent<MouseEvent>) {
-    if (!e.pointer || !e.absolutePointer) {
-      return
-    }
-
-    const hoveredRuler = this.isPointOnRuler(e.pointer)
-
-    if (hoveredRuler && this.activeOn === "up") {
-      const { x, y } = e.absolutePointer
-
-      // Backup properties
-      this.lastAttr.selection = this.handler.canvas.selection
-      this.handler.canvas.selection = false
-      this.activeOn = "down"
-
-      // Create a temporary guide line
-      this.tempGuidelLine = new fabric.GuideLine(hoveredRuler === "horizontal" ? y : x, {
-        axis: hoveredRuler,
-        visible: false,
-      })
-
-      // Set up the temporary guide line
-      this.handler.canvas.add(this.tempGuidelLine)
-      this.handler.canvas.setActiveObject(this.tempGuidelLine)
-      this.handler.canvas._setupCurrentTransform(e.e, this.tempGuidelLine, true)
-
-      // Trigger the down event
-      this.tempGuidelLine.fire("down", this.getCommonEventInfo(e))
-    }
-  }
-
-  /**
-   * Mouse move event on canvas
-   * @param e - Mouse move event
-   */
-  private canvasMouseUp(e: IEvent<MouseEvent>) {
-    if (this.activeOn !== "down") return
-
-    // Restore properties
-    this.handler.canvas.selection = this.lastAttr.selection
-    this.activeOn = "up"
-
-    // Trigger the up event
-    this.tempGuidelLine?.fire("up", this.getCommonEventInfo(e))
-    this.tempGuidelLine = undefined
-  }
-
-  /**
-   * Mouse move event on canvas
-   * @param e - Mouse move event
-   */
-  private canvasMouseMove(e: IEvent<MouseEvent>) {
-    if (!e.pointer) return
-
-    if (this.tempGuidelLine && e.absolutePointer) {
-      const event = this.getCommonEventInfo(e)
-      const pos: Partial<fabric.IGuideLineOptions> = {}
-
-      if (this.tempGuidelLine.axis === "horizontal") {
-        pos.top = e.absolutePointer.y
-      } else {
-        pos.left = e.absolutePointer.x
-      }
-
-      // Render canvas and fire event
-      this.handler.canvas.requestRenderAll()
-      this.handler.canvas.fire("object:moving", event)
-
-      // Set temporary guideline and fire event
-      this.tempGuidelLine.set({ ...pos, visible: true })
-      this.tempGuidelLine.fire("moving", event)
-    }
-
-    const hoveredRuler = this.isPointOnRuler(e.pointer)
-
-    // If the mouse is not on the ruler, return the cursor to the default state
-    if (!hoveredRuler) {
-      this.lastAttr.hoverStatus = "out"
-      this.handler.canvas.defaultCursor = "default"
-      return
-    }
-
-    // If the mouse is on the ruler, change the cursor
-    if (this.lastAttr.hoverStatus !== hoveredRuler) {
-      const cursorMap = {
-        horizontal: "ns-resize",
-        vertical: "ew-resize",
-      }
-
-      this.lastAttr.hoverStatus = hoveredRuler
-      this.handler.canvas.defaultCursor = cursorMap[hoveredRuler]
-    }
-  }
-
-  /**
-   * Get common event information
-   * @param e - Mouse event object
-   * @returns Return common event information
-   */
-  private getCommonEventInfo({ e, absolutePointer }: IEvent<MouseEvent>) {
-    if (!this.tempGuidelLine || !absolutePointer) return
-
-    return {
-      e,
-      transform: this.tempGuidelLine.get("transform"),
-      pointer: { x: absolutePointer.x, y: absolutePointer.y },
-      target: this.tempGuidelLine,
-    }
   }
 }
 
