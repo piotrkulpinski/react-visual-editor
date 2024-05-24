@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Rect } from "../utils/types"
 import type Handler from "./Handler"
 

@@ -46,6 +46,12 @@ class WorkspaceHandler {
 
     // Zoom the canvas
     this.handler.zoomHandler.setZoomToFit()
+
+    // Do not display beyond the canvas
+    this.handler.workspace.clone((cloned: fabric.Rect) => {
+      this.handler.canvas.clipPath = cloned
+      this.handler.canvas.requestRenderAll()
+    })
   }
 }
 

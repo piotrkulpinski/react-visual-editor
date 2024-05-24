@@ -20,6 +20,7 @@ import RulerHandler, { defaultRulerOptions } from "./RulerHandler"
 import DrawingHandler from "./DrawingHandler"
 import GuideLineHandler from "./GuideLineHandler"
 import ObjectHandler from "./ObjectHandler"
+import ControlsHandler from "./ControlsHandler"
 
 export type HandlerStore = {
   zoom: number
@@ -71,6 +72,7 @@ class Handler implements HandlerOptions {
   public rulerHandler: RulerHandler
   public guideLineHandler: GuideLineHandler
   public objectHandler: ObjectHandler
+  public controlsHandler: ControlsHandler
   public eventHandler: EventHandler
   // public imageHandler: ImageHandler
   // public contextmenuHandler: ContextmenuHandler
@@ -126,6 +128,7 @@ class Handler implements HandlerOptions {
     this.rulerHandler = new RulerHandler(this)
     this.guideLineHandler = new GuideLineHandler(this)
     this.objectHandler = new ObjectHandler(this)
+    this.controlsHandler = new ControlsHandler(this)
     // this.imageHandler = new ImageHandler(this)
     // this.contextmenuHandler = new ContextmenuHandler(this)
     // this.transactionHandler = new TransactionHandler(this)
@@ -1241,7 +1244,6 @@ class Handler implements HandlerOptions {
       hotkeys(hotkey.key, { keyup: true }, (e) => {
         if (this.isReady()) {
           hotkey.handler(e)
-          return false
         }
       })
     }

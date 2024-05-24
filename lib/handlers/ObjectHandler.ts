@@ -1,5 +1,6 @@
 import { fabric } from "fabric"
 import Handler from "./Handler"
+import { getRandomColor } from "@curiousleaf/utils"
 
 class ObjectHandler {
   handler: Handler
@@ -19,7 +20,8 @@ class ObjectHandler {
       top: 10,
       fill: "#000000",
       fontFamily: "Arial",
-      fontSize: 20,
+      fontSize: 16,
+      width: 160,
     })
     this.addObject(textObject)
   }
@@ -30,7 +32,7 @@ class ObjectHandler {
       top: 10,
       width: 100,
       height: 100,
-      fill: "#000000",
+      fill: `#${getRandomColor()}`,
     })
     this.addObject(rect)
   }
