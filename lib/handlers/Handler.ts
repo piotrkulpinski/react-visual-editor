@@ -18,6 +18,7 @@ import RulerHandler from "./RulerHandler"
 import DrawingHandler from "./DrawingHandler"
 import ObjectHandler from "./ObjectHandler"
 import ControlsHandler from "./ControlsHandler"
+import HoverHandler from "./HoverHandler"
 import { Canvas, CanvasOptions, FabricObject } from "fabric"
 import { Rect } from "fabric"
 
@@ -71,6 +72,7 @@ class Handler implements HandlerOptions {
   public rulerHandler: RulerHandler
   public objectHandler: ObjectHandler
   public controlsHandler: ControlsHandler
+  public hoverHandler: HoverHandler
   public eventHandler: EventHandler
   // public imageHandler: ImageHandler
   // public contextmenuHandler: ContextmenuHandler
@@ -168,6 +170,7 @@ class Handler implements HandlerOptions {
     this.rulerHandler = new RulerHandler(this)
     this.objectHandler = new ObjectHandler(this)
     this.controlsHandler = new ControlsHandler(this)
+    this.hoverHandler = new HoverHandler(this)
     // this.imageHandler = new ImageHandler(this)
     // this.contextmenuHandler = new ContextmenuHandler(this)
     // this.transactionHandler = new TransactionHandler(this)
