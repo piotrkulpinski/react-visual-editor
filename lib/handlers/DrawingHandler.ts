@@ -147,30 +147,31 @@ class DrawingHandler {
 
   /**
    * Merge line segments
-   * @param rect Array of Rectangles
+   * @param objects Array of Rectangles
    * @param isHorizontal
    * @returns Merged array of Rectangles
    */
-  public mergeLines(rect: Rect[], isHorizontal: boolean) {
-    let currentLine = Object.assign({}, rect[0])
-
-    const mergedLines = []
+  public mergeLines(objects: Rect[], isHorizontal: boolean) {
     const axis = isHorizontal ? "left" : "top"
     const length = isHorizontal ? "width" : "height"
 
     // Sort by size of axis first
-    rect.sort((a, b) => a[axis] - b[axis])
+    objects.sort((a, b) => a[axis] - b[axis])
 
-    for (const item of rect) {
-      const line = Object.assign({}, item)
+    const mergedLines = []
+    let currentLine = Object.assign({}, objects[0])
 
+    for (const object of objects) {
+      const line = Object.assign({}, object)
+
+      // If the current line segment intersects with the next line segment, merge the width
       if (currentLine[axis] + currentLine[length] >= line[axis]) {
-        // If the current line segment intersects with the next line segment, merge the width
         currentLine[length] =
           Math.max(currentLine[axis] + currentLine[length], line[axis] + line[length]) -
           currentLine[axis]
-      } else {
+
         // If the current line segment does not intersect with the next line segment, add the current line segment to the result array and update the current line segment to the next one
+      } else {
         mergedLines.push(currentLine)
         currentLine = Object.assign({}, line)
       }

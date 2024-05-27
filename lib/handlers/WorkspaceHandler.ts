@@ -1,23 +1,5 @@
 import { Rect } from "fabric"
-import type { WorkspaceOptions } from "../utils/types"
 import type Handler from "./Handler"
-
-export const defaultWorkspaceOptions: WorkspaceOptions = {
-  id: "workspace",
-  width: 600,
-  height: 400,
-  fill: "#fff",
-  lockScalingX: true,
-  lockScalingY: true,
-  scaleX: 1,
-  scaleY: 1,
-  hasBorders: false,
-  hasControls: false,
-  selectable: false,
-  lockMovementX: true,
-  lockMovementY: true,
-  hoverCursor: "default",
-}
 
 class WorkspaceHandler {
   handler: Handler
