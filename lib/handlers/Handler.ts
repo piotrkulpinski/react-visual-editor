@@ -11,10 +11,10 @@ import {
 } from "../utils/types"
 import EventHandler from "./EventHandler"
 import InteractionHandler from "./InteractionHandler"
-import WorkspaceHandler, { defaultWorkspaceOptions } from "./WorkspaceHandler"
-import ZoomHandler, { defaultZoomOptions } from "./ZoomHandler"
+import WorkspaceHandler from "./WorkspaceHandler"
+import ZoomHandler from "./ZoomHandler"
 import NudgeHandler from "./NudgeHandler"
-import RulerHandler, { defaultRulerOptions } from "./RulerHandler"
+import RulerHandler from "./RulerHandler"
 import DrawingHandler from "./DrawingHandler"
 import ObjectHandler from "./ObjectHandler"
 import ControlsHandler from "./ControlsHandler"
@@ -94,9 +94,51 @@ class Handler implements HandlerOptions {
       interactionMode: InteractionMode.SELECT,
     }))
 
-    this.zoomOptions = Object.assign({}, defaultZoomOptions, options.zoomOptions)
-    this.workspaceOptions = Object.assign({}, defaultWorkspaceOptions, options.workspaceOptions)
-    this.rulerOptions = Object.assign({}, defaultRulerOptions, options.rulerOptions)
+    // Zoom options
+    this.zoomOptions = Object.assign(
+      {
+        minZoom: 0.01,
+        maxZoom: 5,
+        steps: [0.05, 0.75, 0.125, 0.25, 0.5, 0.75, 1, 1.5, 2, 4],
+        fitRatio: 0.8,
+      },
+      options.zoomOptions
+    )
+
+    // Workspace options
+    this.workspaceOptions = Object.assign(
+      {
+        id: "workspace",
+        width: 600,
+        height: 400,
+        fill: "#fff",
+        lockScalingX: true,
+        lockScalingY: true,
+        scaleX: 1,
+        scaleY: 1,
+        hasBorders: false,
+        hasControls: false,
+        selectable: false,
+        lockMovementX: true,
+        lockMovementY: true,
+        hoverCursor: "default",
+      },
+      options.workspaceOptions
+    )
+
+    // Ruler options
+    this.rulerOptions = Object.assign(
+      {
+        ruleSize: 20,
+        fontSize: 9,
+        backgroundColor: "#fff",
+        borderColor: "#e5e5e5",
+        highlightColor: "#007fff",
+        textColor: "#888888",
+        scaleColor: "#d4d4d4",
+      },
+      options.rulerOptions
+    )
     // this.setPropertiesToInclude(options.propertiesToInclude)=
     // this.setObjectOption(options.objectOption)
     // this.setFabricObjects(options.fabricObjects)

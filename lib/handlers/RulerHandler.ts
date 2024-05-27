@@ -1,15 +1,6 @@
-import type { Rect, RulerOptions } from "../utils/types"
+import { throttle } from "radash"
+import type { Rect } from "../utils/types"
 import type Handler from "./Handler"
-
-export const defaultRulerOptions: RulerOptions = {
-  ruleSize: 20,
-  fontSize: 9,
-  backgroundColor: "#fff",
-  borderColor: "#e5e5e5",
-  highlightColor: "#007fff",
-  textColor: "#888888",
-  scaleColor: "#d4d4d4",
-}
 
 type RulerDrawOptions = {
   isHorizontal: boolean
@@ -24,14 +15,21 @@ class RulerHandler {
    * Caching event handlers
    */
   private eventHandler = {
+    calculateActiveObjects: throttle({ interval: 15 }, this.calculateActiveObjects.bind(this)),
     render: this.render.bind(this),
   }
+
+  /**
+   * Active objects
+   */
+  private activeObjects: undefined | { x: Rect[]; y: Rect[] }
 
   constructor(handler: Handler) {
     this.handler = handler
 
     // Bind events
     // TODO: Unbind events on destroy
+    this.handler.canvas.on("after:render", this.eventHandler.calculateActiveObjects)
     this.handler.canvas.on("after:render", this.eventHandler.render)
   }
 
@@ -148,52 +146,23 @@ class RulerHandler {
    */
   private drawActiveObject({ isHorizontal, startCalibration }: RulerDrawOptions) {
     const { ruleSize, backgroundColor, fontSize, highlightColor } = this.handler.rulerOptions
-    const activeObjects = this.handler.canvas.getActiveObjects()
     const axis = isHorizontal ? "x" : "y"
+    const zoom = this.getZoom()
 
-    if (!activeObjects.length) {
+    if (!this.activeObjects) {
       return
     }
 
-    const allRect = activeObjects.reduce((rects, obj) => {
-      const rect = obj.getBoundingRect()
+    for (const object of this.activeObjects[axis]) {
+      const [left, top, width, height] = isHorizontal
+        ? [(object.left - startCalibration) * zoom, 0, object.width * zoom, ruleSize]
+        : [0, (object.top - startCalibration) * zoom, ruleSize, object.height * zoom]
 
-      // Calculate coordinates separately for grouped objects
-      if (obj.group) {
-        // Calculate rectangle coordinates
-        const groupCenterX = obj.group.width / 2 + obj.group.left
-        const objectOffsetFromCenterX =
-          (obj.group.width / 2 + (obj.left ?? 0)) * (1 - obj.group.scaleX)
-        const groupCenterY = obj.group.height / 2 + obj.group.top
-        const objectOffsetFromCenterY =
-          (obj.group.height / 2 + (obj.top ?? 0)) * (1 - obj.group.scaleY)
-
-        rect.left += (groupCenterX - objectOffsetFromCenterX) * this.getZoom()
-        rect.top += (groupCenterY - objectOffsetFromCenterY) * this.getZoom()
-        rect.width *= obj.group.scaleX
-        rect.height *= obj.group.scaleY
-      }
-
-      rects.push(rect)
-      return rects
-    }, [] as Rect[])
-
-    const objects = {
-      x: this.handler.drawingHandler.mergeLines(allRect, true),
-      y: this.handler.drawingHandler.mergeLines(allRect, false),
-    }
-
-    // const object = activeObject.getBoundingRect()
-    const zoom = this.getZoom()
-    for (const object of objects[axis]) {
-      // Obtain the value of the number
-      const roundFactor = (x: number) => `${Math.round(x / zoom + startCalibration)}`
-
-      const [leftTextVal, rightTextVal] = isHorizontal
-        ? [roundFactor(object.left), roundFactor(object.left + object.width)]
-        : [roundFactor(object.top), roundFactor(object.top + object.height)]
-
-      const isSameText = leftTextVal === rightTextVal
+      const startValue = Math.round(object.left)
+      const endValue = Math.round(object.left + object.width)
+      const isSameValue = startValue === endValue
+      const pad = ruleSize / 2 - fontSize / 2 - 2
+      const lineSize = isSameValue ? 6 : 12
 
       // Background mask
       const maskOpt = {
@@ -205,30 +174,28 @@ class RulerHandler {
 
       this.handler.drawingHandler.drawMask({
         ...maskOpt,
-        left: isHorizontal ? object.left - 80 : 0,
-        top: isHorizontal ? 0 : object.top - 80,
+        left: isHorizontal ? left - 80 : 0,
+        top: isHorizontal ? 0 : top - 80,
       })
 
-      if (!isSameText) {
+      if (!isSameValue) {
         this.handler.drawingHandler.drawMask({
           ...maskOpt,
-          left: isHorizontal ? object.width + object.left - 80 : 0,
-          top: isHorizontal ? 0 : object.height + object.top - 80,
+          left: isHorizontal ? width + left - 80 : 0,
+          top: isHorizontal ? 0 : height + top - 80,
         })
       }
 
       // Highlight mask
       this.handler.drawingHandler.drawRect({
-        left: isHorizontal ? object.left : ruleSize - 6,
-        top: isHorizontal ? ruleSize - 6 : object.top,
-        width: isHorizontal ? object.width : 6,
-        height: isHorizontal ? 6 : object.height,
+        left: isHorizontal ? left : ruleSize - 6,
+        top: isHorizontal ? ruleSize - 6 : top,
+        width: isHorizontal ? width : 6,
+        height: isHorizontal ? 6 : height,
         fill: `${highlightColor}aa`,
       })
 
       // Numbers on both sides
-      const pad = ruleSize / 2 - fontSize / 2 - 2
-
       const textOpt = {
         fill: highlightColor,
         angle: isHorizontal ? 0 : -90,
@@ -236,25 +203,23 @@ class RulerHandler {
 
       this.handler.drawingHandler.drawText({
         ...textOpt,
-        text: leftTextVal,
-        left: isHorizontal ? object.left - 2 : pad,
-        top: isHorizontal ? pad : object.top - 2,
-        align: isSameText ? "center" : isHorizontal ? "right" : "left",
+        text: `${startValue}`,
+        left: isHorizontal ? left - 2 : pad,
+        top: isHorizontal ? pad : top - 2,
+        align: isSameValue ? "center" : isHorizontal ? "right" : "left",
       })
 
-      if (!isSameText) {
+      if (!isSameValue) {
         this.handler.drawingHandler.drawText({
           ...textOpt,
-          text: rightTextVal,
-          left: isHorizontal ? object.left + object.width + 2 : pad,
-          top: isHorizontal ? pad : object.top + object.height + 2,
+          text: `${endValue}`,
+          left: isHorizontal ? left + width + 2 : pad,
+          top: isHorizontal ? pad : top + height + 2,
           align: isHorizontal ? "left" : "right",
         })
       }
 
       // Lines on both sides
-      const lineSize = isSameText ? 6 : 12
-
       const lineOpt = {
         width: isHorizontal ? 0 : lineSize,
         height: isHorizontal ? lineSize : 0,
@@ -263,17 +228,34 @@ class RulerHandler {
 
       this.handler.drawingHandler.drawLine({
         ...lineOpt,
-        left: isHorizontal ? object.left : ruleSize - lineSize,
-        top: isHorizontal ? ruleSize - lineSize : object.top,
+        left: isHorizontal ? left : ruleSize - lineSize,
+        top: isHorizontal ? ruleSize - lineSize : top,
       })
 
-      if (!isSameText) {
+      if (!isSameValue) {
         this.handler.drawingHandler.drawLine({
           ...lineOpt,
-          left: isHorizontal ? object.left + object.width : ruleSize - lineSize,
-          top: isHorizontal ? ruleSize - lineSize : object.top + object.height,
+          left: isHorizontal ? left + width : ruleSize - lineSize,
+          top: isHorizontal ? ruleSize - lineSize : top + height,
         })
       }
+    }
+  }
+
+  private calculateActiveObjects() {
+    const activeObjects = this.handler.canvas.getActiveObjects()
+    const mergeLines = this.handler.drawingHandler.mergeLines
+
+    if (!activeObjects.length) {
+      this.activeObjects = undefined
+      return
+    }
+
+    const objects = activeObjects.map((obj) => obj.getBoundingRect())
+
+    this.activeObjects = {
+      x: mergeLines(objects, true),
+      y: mergeLines(objects, false),
     }
   }
 
