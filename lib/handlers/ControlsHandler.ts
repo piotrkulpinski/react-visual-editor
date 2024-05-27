@@ -25,7 +25,7 @@ type CornerControl = {
   y: number
 }
 
-type ScalingControl = {
+type SideControl = {
   point: "ml" | "mt" | "mr" | "mb"
   x: number
   y: number
@@ -60,13 +60,13 @@ class ControlsHandler {
 
     // Customize controls
     FabricObject.ownDefaults.controls = this.defaultControls()
-    Textbox.ownDefaults.controls = this.defaultControls()
+    Textbox.ownDefaults.controls = this.defaultControls("textbox")
   }
 
   /**
-   * Prepare the object controls
+   * Create a set of controls for modifying the object
    */
-  private defaultControls() {
+  private defaultControls(type: "textbox" | "object" = "object") {
     const controls: Record<string, Control> = {
       size: this.createSizeControl(),
     }
@@ -78,12 +78,21 @@ class ControlsHandler {
       { point: "blr", x: -0.5, y: 0.5, offsetX: -8, offsetY: 8, angle: 270 },
     ]
 
-    const scalingControls = [
-      { point: "ml", x: -0.5, y: 0, actionHandler: controlsUtils.scalingXOrSkewingY },
-      { point: "mr", x: 0.5, y: 0, actionHandler: controlsUtils.scalingXOrSkewingY },
-      { point: "mb", x: 0, y: 0.5, actionHandler: controlsUtils.scalingYOrSkewingX },
-      { point: "mt", x: 0, y: -0.5, actionHandler: controlsUtils.scalingYOrSkewingX },
-    ]
+    let sideControls: SideControl[] = []
+
+    if (type === "textbox") {
+      sideControls = [
+        { point: "ml", x: -0.5, y: 0, actionHandler: this.changeWidth },
+        { point: "mr", x: 0.5, y: 0, actionHandler: this.changeWidth },
+      ]
+    } else {
+      sideControls = [
+        { point: "ml", x: -0.5, y: 0, actionHandler: controlsUtils.scalingXOrSkewingY },
+        { point: "mr", x: 0.5, y: 0, actionHandler: controlsUtils.scalingXOrSkewingY },
+        { point: "mb", x: 0, y: 0.5, actionHandler: controlsUtils.scalingYOrSkewingX },
+        { point: "mt", x: 0, y: -0.5, actionHandler: controlsUtils.scalingYOrSkewingX },
+      ]
+    }
 
     // Corner controls
     const cornerControls = [
@@ -99,9 +108,8 @@ class ControlsHandler {
     }
 
     // Scaling controls
-    for (const { point, ...control } of scalingControls) {
-      // TODO: Make sure text objects have different controls without scaling
-      controls[point] = this.createScalingControl(control)
+    for (const { point, ...control } of sideControls) {
+      controls[point] = this.createSideControl(control)
     }
 
     // Corner controls
@@ -112,18 +120,21 @@ class ControlsHandler {
     return controls
   }
 
+  /**
+   * Create a size control
+   */
   private createSizeControl() {
     return new Control({
       x: 0,
       y: 0.5,
-      cursorStyleHandler: () => "",
       offsetY: 14,
       sizeX: 0.0001,
       sizeY: 0.0001,
       touchSizeX: 0.0001,
       touchSizeY: 0.0001,
+      cursorStyleHandler: () => "",
       render: (ctx, left, top, _, fabricObject: FabricObject) => {
-        // todo: 支持组内反转的对象
+        // todo: Support objects with group-wise inversion
         ctx.save()
         ctx.translate(left, top)
 
@@ -152,7 +163,7 @@ class ControlsHandler {
         ctx.fillStyle = "#0066ff"
         ctx.fill()
 
-        // 文字
+        // Text
         ctx.fillStyle = "#fff"
         ctx.fillText(text, 0, 1)
         ctx.restore()
@@ -240,9 +251,9 @@ class ControlsHandler {
   }
 
   /**
-   * Create a scaling control
+   * Create a side control
    */
-  private createScalingControl({ x, y, actionHandler }: Omit<ScalingControl, "point">) {
+  private createSideControl({ x, y, actionHandler }: Omit<SideControl, "point">) {
     return new Control({
       x,
       y,
@@ -252,6 +263,14 @@ class ControlsHandler {
       cursorStyleHandler: controlsUtils.scaleSkewCursorStyleHandler,
     })
   }
+
+  /**
+   * Change the width of the object
+   */
+  private changeWidth = controlsUtils.wrapWithFireEvent(
+    "scaling",
+    controlsUtils.wrapWithFixedAnchor(controlsUtils.changeWidth)
+  )
 
   /**
    * Rotate and snap, hold the Shift key to snap at a 15-degree angle
@@ -310,19 +329,23 @@ class ControlsHandler {
     const cornersH = ["ml", "mr"]
     const cornersV = ["mt", "mb"]
 
-    cornersH.forEach((corner) => {
-      controls[corner].sizeX = cornerSize
-      controls[corner].sizeY = width
-      controls[corner].touchSizeX = touchCornerSize
-      controls[corner].touchSizeY = width
-    })
+    for (const corner of cornersH) {
+      if (controls[corner]) {
+        controls[corner].sizeX = cornerSize
+        controls[corner].sizeY = height
+        controls[corner].touchSizeX = touchCornerSize
+        controls[corner].touchSizeY = height
+      }
+    }
 
-    cornersV.forEach((corner) => {
-      controls[corner].sizeX = height
-      controls[corner].sizeY = cornerSize
-      controls[corner].touchSizeX = height
-      controls[corner].touchSizeY = touchCornerSize
-    })
+    for (const corner of cornersV) {
+      if (controls[corner]) {
+        controls[corner].sizeX = width
+        controls[corner].sizeY = cornerSize
+        controls[corner].touchSizeX = width
+        controls[corner].touchSizeY = touchCornerSize
+      }
+    }
   }
 }
 

@@ -10,7 +10,15 @@ import type Handler from "./Handler"
  */
 class EventHandler {
   handler: Handler
+
+  /**
+   * Whether is panning or not
+   */
   isPanning: boolean
+
+  /**
+   * Whether middle button is clicked or not
+   */
   isMiddleClicked: boolean
 
   constructor(handler: Handler) {
@@ -166,8 +174,6 @@ class EventHandler {
    * Mouse up before event
    */
   private onMouseUpBefore = (_: CanvasEvents["mouse:up:before"]) => {
-    // TODO: Reset cursor to default state
-    // this.handler.canvas.setCursor("default")
     this.isMiddleClicked = false
   }
 

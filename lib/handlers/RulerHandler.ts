@@ -186,7 +186,6 @@ class RulerHandler {
     // const object = activeObject.getBoundingRect()
     const zoom = this.getZoom()
     for (const object of objects[axis]) {
-      console.log(object)
       // Obtain the value of the number
       const roundFactor = (x: number) => `${Math.round(x / zoom + startCalibration)}`
 
