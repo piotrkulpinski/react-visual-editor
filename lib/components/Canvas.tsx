@@ -1,4 +1,3 @@
-/** eslint-disable react-hooks/exhaustive-deps */
 import { Canvas as FabricCanvas, CanvasOptions } from "fabric"
 import {
   type HTMLAttributes,
@@ -7,7 +6,6 @@ import {
   useEffect,
   useImperativeHandle,
   useState,
-  useRef,
 } from "react"
 import { v4 as uuid } from "uuid"
 import Handler from "../handlers/Handler"
@@ -18,7 +16,6 @@ type CanvasProps = HTMLAttributes<HTMLDivElement> & {
 
 export const Canvas = forwardRef<Handler, CanvasProps>(({ options, ...props }, ref) => {
   const containerRef = createRef<HTMLDivElement>()
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [handler, setHandler] = useState<Handler>()
 
   const canvasOptions = Object.assign(
@@ -53,7 +50,6 @@ export const Canvas = forwardRef<Handler, CanvasProps>(({ options, ...props }, r
     return () => {
       handlerInstance.destroy()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Handler ref

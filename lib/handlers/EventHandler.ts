@@ -180,6 +180,7 @@ class EventHandler {
   /**
    * Mouse up event on canvas
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private onMouseUp = (_: CanvasEvents["mouse:up"]) => {
     if (this.handler.store.getState().interactionMode === InteractionMode.PAN) {
       this.handler.canvas.setCursor("grab")
