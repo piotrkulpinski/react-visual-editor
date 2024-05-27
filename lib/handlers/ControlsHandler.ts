@@ -160,7 +160,7 @@ class ControlsHandler {
         const height = fontSize + 6
 
         ctx.roundRect(-width / 2, -height / 2, width, height, 4)
-        ctx.fillStyle = "#0066ff"
+        ctx.fillStyle = "#007fff"
         ctx.fill()
 
         // Text

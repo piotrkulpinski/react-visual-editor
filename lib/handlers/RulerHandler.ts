@@ -154,15 +154,20 @@ class RulerHandler {
     }
 
     for (const object of this.activeObjects[axis]) {
-      const [left, top, width, height] = isHorizontal
-        ? [(object.left - startCalibration) * zoom, 0, object.width * zoom, ruleSize]
-        : [0, (object.top - startCalibration) * zoom, ruleSize, object.height * zoom]
+      const startValue = isHorizontal ? object.left : object.top
+      const dimensionValue = isHorizontal ? object.width : object.height
 
-      const startValue = Math.round(object.left)
-      const endValue = Math.round(object.left + object.width)
-      const isSameValue = startValue === endValue
+      const position = [0, (startValue - startCalibration) * zoom]
+      const dimension = [ruleSize, dimensionValue * zoom]
+
+      const [left, top] = isHorizontal ? position.reverse() : position
+      const [width, height] = isHorizontal ? dimension.reverse() : dimension
+
+      const startLabel = Math.round(startValue)
+      const endLabel = Math.round(startValue + dimensionValue)
+      const isSameLabel = startLabel === endLabel
       const pad = ruleSize / 2 - fontSize / 2 - 2
-      const lineSize = isSameValue ? 6 : 12
+      const lineSize = isSameLabel ? 6 : 12
 
       // Background mask
       const maskOpt = {
@@ -178,7 +183,7 @@ class RulerHandler {
         top: isHorizontal ? 0 : top - 80,
       })
 
-      if (!isSameValue) {
+      if (!isSameLabel) {
         this.handler.drawingHandler.drawMask({
           ...maskOpt,
           left: isHorizontal ? width + left - 80 : 0,
@@ -203,16 +208,16 @@ class RulerHandler {
 
       this.handler.drawingHandler.drawText({
         ...textOpt,
-        text: `${startValue}`,
+        text: `${startLabel}`,
         left: isHorizontal ? left - 2 : pad,
         top: isHorizontal ? pad : top - 2,
-        align: isSameValue ? "center" : isHorizontal ? "right" : "left",
+        align: isSameLabel ? "center" : isHorizontal ? "right" : "left",
       })
 
-      if (!isSameValue) {
+      if (!isSameLabel) {
         this.handler.drawingHandler.drawText({
           ...textOpt,
-          text: `${endValue}`,
+          text: `${endLabel}`,
           left: isHorizontal ? left + width + 2 : pad,
           top: isHorizontal ? pad : top + height + 2,
           align: isHorizontal ? "left" : "right",
@@ -232,7 +237,7 @@ class RulerHandler {
         top: isHorizontal ? ruleSize - lineSize : top,
       })
 
-      if (!isSameValue) {
+      if (!isSameLabel) {
         this.handler.drawingHandler.drawLine({
           ...lineOpt,
           left: isHorizontal ? left + width : ruleSize - lineSize,

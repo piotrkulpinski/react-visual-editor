@@ -33,10 +33,10 @@ class WorkspaceHandler {
     this.handler.zoomHandler.setZoomToFit()
 
     // Do not display beyond the canvas
-    // const clone = await this.handler.workspace.clone()
+    const clone = await this.handler.workspace.clone()
 
-    // this.handler.canvas.clipPath = clone
-    // this.handler.canvas.requestRenderAll()
+    this.handler.canvas.clipPath = clone
+    this.handler.canvas.requestRenderAll()
   }
 }
 

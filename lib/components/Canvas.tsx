@@ -1,3 +1,4 @@
+/** eslint-disable react-hooks/exhaustive-deps */
 import { Canvas as FabricCanvas, CanvasOptions } from "fabric"
 import {
   type HTMLAttributes,
@@ -20,11 +21,12 @@ export const Canvas = forwardRef<Handler, CanvasProps>(({ options, ...props }, r
 
   const canvasOptions = Object.assign(
     {
-      preserveObjectStacking: true,
       width: 300,
       height: 150,
       selection: true,
       defaultCursor: "default",
+      preserveObjectStacking: true,
+      controlsAboveOverlay: true,
     },
     options
   )
