@@ -58,9 +58,11 @@ class ZoomHandler {
   /**
    * Zoom the canvas to fit the workspace
    */
-  public setZoomToFit() {
+  public setZoomToFit(limitToOne = false) {
     const zoom = this.getScale()
-    this.setZoom(zoom * this.handler.zoomOptions.fitRatio)
+    const newZoom = zoom * this.handler.zoomOptions.fitRatio
+
+    this.setZoom(limitToOne ? Math.min(newZoom, 1) : newZoom)
   }
 
   /**

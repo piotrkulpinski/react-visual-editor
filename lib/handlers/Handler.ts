@@ -114,13 +114,13 @@ class Handler implements HandlerOptions {
         width: 600,
         height: 400,
         fill: "#fff",
-        lockScalingX: true,
-        lockScalingY: true,
         scaleX: 1,
         scaleY: 1,
         hasBorders: false,
         hasControls: false,
         selectable: false,
+        lockScalingX: true,
+        lockScalingY: true,
         lockMovementX: true,
         lockMovementY: true,
         hoverCursor: "default",
@@ -1286,6 +1286,11 @@ class Handler implements HandlerOptions {
       hotkeys(hotkey.key, { keyup: true }, (e) => {
         if (this.isReady()) {
           hotkey.handler(e)
+
+          // If the hotkey is not "*", then prevent the default behavior
+          if (hotkey.key !== "*") {
+            return false
+          }
         }
       })
     }

@@ -12,7 +12,7 @@ class WorkspaceHandler {
     this.handler.workspace = workspace
     this.handler.canvas.add(workspace)
     this.handler.canvas.renderAll()
-    this.handler.zoomHandler.setZoomToFit()
+    this.handler.zoomHandler.setZoomToFit(true)
   }
 
   /**
@@ -30,7 +30,7 @@ class WorkspaceHandler {
     this.handler.canvas.setViewportTransform(this.handler.canvas.viewportTransform)
 
     // Zoom the canvas
-    this.handler.zoomHandler.setZoomToFit()
+    this.handler.zoomHandler.setZoomToFit(true)
 
     // Do not display beyond the canvas
     const clone = await this.handler.workspace.clone()

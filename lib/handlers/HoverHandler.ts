@@ -1,7 +1,7 @@
 import { CanvasEvents } from "fabric"
 import type Handler from "./Handler"
 
-class InteractionHandler {
+class HoverHandler {
   handler: Handler
 
   constructor(handler: Handler) {
@@ -11,7 +11,10 @@ class InteractionHandler {
     this.handler.canvas.on("mouse:out", this.onMouseOut.bind(this))
   }
 
-  public onMouseOver(e: CanvasEvents["mouse:over"]) {
+  /**
+   * Show the controls when the mouse is over the object
+   */
+  private onMouseOver(e: CanvasEvents["mouse:over"]) {
     if (!e.target || e.target === this.handler.canvas._activeObject) {
       return
     }
@@ -21,9 +24,12 @@ class InteractionHandler {
     })
   }
 
-  public onMouseOut() {
+  /**
+   * Re-render the canvas to hide the controls
+   */
+  private onMouseOut() {
     this.handler.canvas.renderAll()
   }
 }
 
-export default InteractionHandler
+export default HoverHandler

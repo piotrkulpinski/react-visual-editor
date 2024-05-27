@@ -7,6 +7,11 @@ class ObjectHandler {
 
   constructor(handler: Handler) {
     this.handler = handler
+
+    this.handler.registerHotkeyHandlers(
+      { key: "cmd+shift+1", handler: () => this.addRect() },
+      { key: "cmd+shift+2", handler: () => this.addText("CSS is awesome") }
+    )
   }
 
   public addObject(object: FabricObject) {

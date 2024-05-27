@@ -23,7 +23,6 @@ export const Canvas = forwardRef<Handler, CanvasProps>(({ options, ...props }, r
     {
       width: 300,
       height: 150,
-      selection: true,
       defaultCursor: "default",
       preserveObjectStacking: true,
       controlsAboveOverlay: true,
