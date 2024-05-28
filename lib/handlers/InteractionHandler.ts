@@ -5,8 +5,14 @@ import type Handler from "./Handler"
 class InteractionHandler {
   handler: Handler
 
+  /**
+   * Store the default selection state
+   */
+  defaultSelection: boolean
+
   constructor(handler: Handler) {
     this.handler = handler
+    this.defaultSelection = this.handler.canvas.selection
 
     this.handler.registerHotkeyHandlers(
       { key: "v", handler: () => this.setInteractionMode(InteractionMode.SELECT) },
@@ -31,9 +37,12 @@ class InteractionHandler {
     switch (mode) {
       case InteractionMode.SELECT:
         this.handler.canvas.setCursor("default")
-        this.handler.canvas.selection = this.handler.canvasOptions?.selection ?? false
+        this.handler.canvas.selection = this.defaultSelection
         break
       case InteractionMode.PAN:
+        this.defaultSelection = this.handler.canvas.selection
+
+        this.handler.canvas.discardActiveObject()
         this.handler.canvas.setCursor("grab")
         this.handler.canvas.selection = false
         break

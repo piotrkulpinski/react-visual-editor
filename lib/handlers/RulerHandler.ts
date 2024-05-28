@@ -15,7 +15,7 @@ class RulerHandler {
    * Caching event handlers
    */
   private eventHandler = {
-    calculateActiveObjects: throttle({ interval: 15 }, this.calculateActiveObjects.bind(this)),
+    calculateActiveObjects: throttle({ interval: 20 }, this.calculateActiveObjects.bind(this)),
     render: this.render.bind(this),
   }
 
@@ -31,6 +31,15 @@ class RulerHandler {
     // TODO: Unbind events on destroy
     this.handler.canvas.on("after:render", this.eventHandler.calculateActiveObjects)
     this.handler.canvas.on("after:render", this.eventHandler.render)
+
+    // this.canvasEvents = {
+    //   'after:render': this.render.bind(this),
+    //   'mouse:move': this.mouseMove.bind(this),
+    //   'mouse:down': this.mouseDown.bind(this),
+    //   'mouse:up': this.mouseUp.bind(this),
+    //   'referenceline:moving': this.referenceLineMoving.bind(this),
+    //   'referenceline:mouseup': this.referenceLineMouseup.bind(this),
+    // }
   }
 
   /**

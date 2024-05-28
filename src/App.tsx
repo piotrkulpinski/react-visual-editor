@@ -4,6 +4,7 @@ import { Canvas } from "../lib/components/Canvas"
 import type Handler from "../lib/handlers/Handler"
 import { CanvasZoomNav } from "./components/CanvasZoomNav"
 import { CanvasInteractionNav } from "./components/CanvasInteractionNav"
+import { CanvasTopNav } from "./components/CanvasTopNav"
 
 export default function App() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -18,7 +19,7 @@ export default function App() {
 
       <div className="relative flex flex-col flex-1 w-full overflow-clip">
         <nav className="relative z-10 h-10 shrink-0 px-4 bg-white shadow-outline">
-          {/* <CanvasTopNav /> */}
+          {handler && <CanvasTopNav handler={handler} />}
         </nav>
 
         <Canvas

@@ -15,11 +15,11 @@ class HoverHandler {
    * Show the controls when the mouse is over the object
    */
   private onMouseOver(e: CanvasEvents["mouse:over"]) {
-    if (!e.target || e.target === this.handler.canvas._activeObject) {
+    if (e.target === this.handler.canvas._activeObject || !this.handler.canvas.selection) {
       return
     }
 
-    e.target._renderControls(this.handler.canvas.getContext(), {
+    e.target?._renderControls(this.handler.canvas.getContext(), {
       hasControls: false,
     })
   }

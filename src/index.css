@@ -18,11 +18,11 @@
     /* Flat-top three */ "cv09",
     /* Open 4 */ "cv02" 1;
 
-    --color-primary-lighter: 239 183 178;
-    --color-primary-light: 228 141 133;
-    --color-primary: 196 84 74;
-    --color-primary-dark: 162 60 51;
-    --color-primary-darker: 134 53 46;
+  --color-primary-lighter: 239 183 178;
+  --color-primary-light: 228 141 133;
+  --color-primary: 196 84 74;
+  --color-primary-dark: 162 60 51;
+  --color-primary-darker: 134 53 46;
 }
 
 @supports (font-variation-settings: normal) {
@@ -33,10 +33,10 @@
 }
 
 /* SVG Icons */
-svg[stroke="currentColor"]:not([class*="stroke"]) {
+svg[stroke="currentColor"]:not([class*="stroke-"]) {
   @apply stroke-[1.75];
 }
 
-svg[stroke="currentColor"]:not([class*="size"]) {
+svg[stroke="currentColor"]:not([class*="size-"]) {
   @apply size-icon;
 }

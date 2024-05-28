@@ -4,29 +4,34 @@ import {
   IconArrowForwardUp,
   IconCopy,
   IconDownload,
-  IconHandStop,
-  IconPointer,
+  IconLetterT,
+  IconLine,
   IconRuler,
   IconShape,
 } from "@tabler/icons-react"
 import type { HTMLAttributes } from "react"
-import { type StoreApi, useStore } from "zustand"
-import { useEditor } from "../providers/EditorProvider"
 import { CanvasButton } from "./CanvasButton"
+import Handler from "../../lib/handlers/Handler"
 
-export const CanvasTopNav = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
-  const { editor } = useEditor()
+type CanvasTopNavProps = HTMLAttributes<HTMLDivElement> & {
+  handler: Handler
+}
 
-  if (!editor) {
-    return null
-  }
-  const { isRulerEnabled } = useStore(editor?.store as StoreApi<any>)
-
+export const CanvasTopNav = ({ handler, className, ...props }: CanvasTopNavProps) => {
   return (
     <div className={cx("size-full flex items-center", className)} {...props}>
       <div className="flex items-center divide-x -mx-3">
         <div className="flex items-center gap-0.5 px-3 h-4">
-          <CanvasButton tooltip="Add Rectangle" prefix={<IconShape />} />
+          <CanvasButton
+            tooltip="Add Rectangle"
+            prefix={<IconShape />}
+            onClick={() => handler.objectHandler.addRect()}
+          />
+          <CanvasButton
+            tooltip="Add Text"
+            prefix={<IconLetterT />}
+            onClick={() => handler.objectHandler.addText("Everything is fine")}
+          />
         </div>
 
         <div className="flex items-center gap-0.5 px-3 h-4">
@@ -35,17 +40,8 @@ export const CanvasTopNav = ({ className, ...props }: HTMLAttributes<HTMLDivElem
         </div>
 
         <div className="flex items-center gap-0.5 px-3 h-4">
-          <CanvasButton tooltip="Select" prefix={<IconPointer />} />
-          <CanvasButton tooltip="Pan" prefix={<IconHandStop />} />
-        </div>
-
-        <div className="flex items-center gap-0.5 px-3 h-4">
-          <CanvasButton
-            tooltip="Toggle Ruler"
-            prefix={<IconRuler />}
-            onClick={editor.rulerToggle}
-            isActive={isRulerEnabled}
-          />
+          <CanvasButton tooltip="Toggle Ruler" prefix={<IconRuler />} />
+          <CanvasButton tooltip="Toggle Guides" prefix={<IconLine />} />
         </div>
       </div>
 
