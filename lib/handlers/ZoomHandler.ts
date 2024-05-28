@@ -1,4 +1,4 @@
-import { Point, util } from "fabric"
+import { CanvasEvents, FabricObject, Point, util } from "fabric"
 import type Handler from "./Handler"
 
 class ZoomHandler {
@@ -7,12 +7,31 @@ class ZoomHandler {
   constructor(handler: Handler) {
     this.handler = handler
 
+    // Register hotkeys
     this.handler.registerHotkeyHandlers(
       { key: "cmd+=", handler: () => this.setZoomIn() },
       { key: "cmd+-", handler: () => this.setZoomOut() },
       { key: "cmd+0", handler: () => this.setZoom(1) },
-      { key: "cmd+1", handler: () => this.setZoomToFit() }
+      { key: "shift+1", handler: () => this.setZoomToFit() },
+      { key: "shift+2", handler: () => this.setZoomToSelection() }
     )
+
+    // Register canvas events
+    this.handler.canvas.on("mouse:wheel", this.onMouseWheel.bind(this))
+  }
+
+  /**
+   * Mouse wheel event
+   */
+  private onMouseWheel({ e }: CanvasEvents["mouse:wheel"]) {
+    e.preventDefault()
+    e.stopPropagation()
+
+    const zoom = this.handler.canvas.getZoom()
+    const mousePoint = new Point(e.layerX, e.layerY)
+
+    // Zoom canvas to the mouse point
+    this.handler.zoomHandler.setZoom(zoom * 0.999 ** e.deltaY, undefined, mousePoint)
   }
 
   /**
@@ -20,18 +39,19 @@ class ZoomHandler {
    * If x and y are not provided, the center point of the canvas will be used
    *
    * @param zoom The zoom level
+   * @param an object to center the zoom on
    * @param x The x coordinate of the point to zoom to
    * @param y The y coordinate of the point to zoom to
    */
-  public setZoom(zoom: number, ...coords: number[]) {
+  public setZoom(zoom: number, object?: FabricObject, point?: Point) {
     const { minZoom, maxZoom } = this.handler.zoomOptions
     const normalizedZoom = Math.min(Math.max(zoom, minZoom), maxZoom)
 
-    if (coords.length) {
-      this.handler.canvas.zoomToPoint(new Point(coords[0], coords[1]), normalizedZoom)
+    if (point) {
+      this.handler.canvas.zoomToPoint(point, normalizedZoom)
     } else {
       this.handler.canvas.setZoom(normalizedZoom)
-      this.handler.setCenterFromObject(this.handler.workspace)
+      this.setCenterFromObject(object ?? this.handler.workspace)
     }
 
     // Store the zoom level in the store
@@ -59,10 +79,41 @@ class ZoomHandler {
    * Zoom the canvas to fit the workspace
    */
   public setZoomToFit(limitToOne = false) {
-    const zoom = this.getScale()
-    const newZoom = zoom * this.handler.zoomOptions.fitRatio
+    const workspace = this.handler.workspace
+    const zoom = this.getScale(workspace)
 
-    this.setZoom(limitToOne ? Math.min(newZoom, 1) : newZoom)
+    this.setZoom(limitToOne ? Math.min(zoom, 1) : zoom)
+  }
+
+  /**
+   * Zoom the canvas to fit the active object
+   */
+  public setZoomToSelection() {
+    if (!this.handler.canvas._activeObject) return
+
+    const activeObject = this.handler.canvas._activeObject
+    const zoom = this.getScale(activeObject)
+
+    this.setZoom(zoom, activeObject)
+  }
+
+  /**
+   * Center the canvas on the center object of the workspace
+   *
+   * @param object - The object to center the canvas on
+   */
+  private setCenterFromObject(object: FabricObject) {
+    const { x, y } = object.getCenterPoint()
+    const { width, height, viewportTransform } = this.handler.canvas
+
+    if (width === undefined || height === undefined || !viewportTransform) {
+      return
+    }
+
+    viewportTransform[4] = width / 2 - x * (viewportTransform[0] ?? 1)
+    viewportTransform[5] = height / 2 - y * (viewportTransform[3] ?? 1)
+    this.handler.canvas.setViewportTransform(viewportTransform)
+    this.handler.canvas.requestRenderAll()
   }
 
   /**
@@ -88,14 +139,15 @@ class ZoomHandler {
    *
    * @returns The scale of the canvas.
    */
-  private getScale() {
+  private getScale({ width, height, scaleX, scaleY }: FabricObject) {
     const { offsetWidth, offsetHeight } = this.handler.container
-    const { width, height } = this.handler.workspace
 
-    return util.findScaleToFit(
-      { width: width ?? 0, height: height ?? 0 },
+    const scale = util.findScaleToFit(
+      { width: width * scaleX, height: height * scaleY },
       { width: offsetWidth, height: offsetHeight }
     )
+
+    return scale * this.handler.zoomOptions.fitRatio
   }
 }
 

@@ -41,7 +41,6 @@ class EventHandler {
       // "object:moved": this.moved,
       // "object:rotating": this.rotating,
       // "object:rotated": this.rotated,
-      "mouse:wheel": this.onMouseWheel,
       "mouse:down:before": this.onMouseDownBefore,
       "mouse:down": this.onMouseDown,
       "mouse:up:before": this.onMouseUpBefore,
@@ -63,7 +62,6 @@ class EventHandler {
       // "object:moving": this.moving,
       // "object:moved": this.moved,
       // "object:rotating": this.rotating,
-      "mouse:wheel": this.onMouseWheel,
       "mouse:down:before": this.onMouseDownBefore,
       "mouse:down": this.onMouseDown,
       "mouse:up:before": this.onMouseUpBefore,
@@ -137,17 +135,6 @@ class EventHandler {
   //     this.handler.transactionHandler.save("rotated")
   //   }
   // }
-
-  /**
-   * Mouse wheel event
-   */
-  private onMouseWheel = ({ e }: CanvasEvents["mouse:wheel"]) => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    const zoom = this.handler.canvas.getZoom()
-    this.handler.zoomHandler.setZoom(zoom * 0.999 ** e.deltaY, e.layerX, e.layerY)
-  }
 
   /**
    * Mouse down before event

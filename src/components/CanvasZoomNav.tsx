@@ -1,5 +1,5 @@
 import { Button, ButtonGroup, Dropdown, MenuItem, Tooltip } from "@curiousleaf/design"
-import { IconMaximize, IconMinus, IconPlus } from "@tabler/icons-react"
+import { IconMaximize, IconMinus, IconPlus, IconSelectAll } from "@tabler/icons-react"
 import type { HTMLAttributes } from "react"
 import { useStore } from "zustand"
 import type Handler from "../../lib/handlers/Handler"
@@ -14,18 +14,29 @@ export const CanvasZoomNav = ({ handler, ...props }: CanvasZoomNavProps) => {
 
   return (
     <div className="absolute bottom-4 right-4 flex items-center gap-2" {...props}>
-      <Tooltip tooltip="Zoom to Fit">
-        <Button
-          size="sm"
-          theme="secondary"
-          variant="outline"
-          prefix={<IconMaximize />}
-          onClick={() => handler.zoomHandler.setZoomToFit()}
-        />
-      </Tooltip>
+      <ButtonGroup>
+        <Tooltip tooltip="Zoom to fit">
+          <Button
+            size="sm"
+            theme="secondary"
+            variant="outline"
+            prefix={<IconMaximize />}
+            onClick={() => handler.zoomHandler.setZoomToFit()}
+          />
+        </Tooltip>
+        <Tooltip tooltip="Zoom to selection">
+          <Button
+            size="sm"
+            theme="secondary"
+            variant="outline"
+            prefix={<IconSelectAll />}
+            onClick={() => handler.zoomHandler.setZoomToSelection()}
+          />
+        </Tooltip>
+      </ButtonGroup>
 
       <ButtonGroup>
-        <Tooltip tooltip="Zoom In">
+        <Tooltip tooltip="Zoom in">
           <Button
             size="sm"
             theme="secondary"
@@ -46,7 +57,7 @@ export const CanvasZoomNav = ({ handler, ...props }: CanvasZoomNavProps) => {
             <Dropdown.Label className="text-2xs font-medium">Zoom Level</Dropdown.Label>
 
             <Dropdown.Group>
-              {zoomLevels.map(level => (
+              {zoomLevels.map((level) => (
                 <Dropdown.Item key={level} onClick={() => handler.zoomHandler.setZoom(level)}>
                   <MenuItem size="sm" className="text-center">
                     {level * 100}%
@@ -57,7 +68,7 @@ export const CanvasZoomNav = ({ handler, ...props }: CanvasZoomNavProps) => {
           </Dropdown.Content>
         </Dropdown>
 
-        <Tooltip tooltip="Zoom Out">
+        <Tooltip tooltip="Zoom out">
           <Button
             size="sm"
             theme="secondary"

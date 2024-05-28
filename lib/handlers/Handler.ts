@@ -2,12 +2,12 @@ import hotkeys from "hotkeys-js"
 import { debounce } from "radash"
 import { type StoreApi, createStore } from "zustand"
 import {
-    type HandlerOptions,
-    type HotkeyHandler,
-    InteractionMode,
-    type WorkspaceOptions,
-    type ZoomOptions,
-    RulerOptions,
+  type HandlerOptions,
+  type HotkeyHandler,
+  InteractionMode,
+  type WorkspaceOptions,
+  type ZoomOptions,
+  RulerOptions,
 } from "../utils/types"
 import EventHandler from "./EventHandler"
 import InteractionHandler from "./InteractionHandler"
@@ -1170,25 +1170,6 @@ class Handler implements HandlerOptions {
     this.getObjects().map((obj) => this.canvas.remove(obj))
     this.canvas.discardActiveObject()
     this.canvas.renderAll()
-  }
-
-  /**
-   * Center the canvas on the center point of the workspace
-   *
-   * @param object - The object to center the canvas on
-   */
-  public setCenterFromObject(object: Rect) {
-    const { x, y } = object.getCenterPoint()
-    const { width, height, viewportTransform } = this.canvas
-
-    if (width === undefined || height === undefined || !viewportTransform) {
-      return
-    }
-
-    viewportTransform[4] = width / 2 - x * (viewportTransform[0] ?? 1)
-    viewportTransform[5] = height / 2 - y * (viewportTransform[3] ?? 1)
-    this.canvas.setViewportTransform(viewportTransform)
-    this.canvas.requestRenderAll()
   }
 
   // /**

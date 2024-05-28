@@ -244,7 +244,7 @@ class ControlsHandler {
     return new Control({
       x,
       y,
-      actionName: "scaling",
+      actionName: "resize",
       actionHandler: controlsUtils.scalingEqually,
       cursorStyleHandler: controlsUtils.scaleCursorStyleHandler,
     })
