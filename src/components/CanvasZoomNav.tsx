@@ -1,5 +1,5 @@
 import { Button, ButtonGroup, Dropdown, MenuItem, Tooltip } from "@curiousleaf/design"
-import { IconMaximize, IconMinus, IconPlus, IconSelectAll } from "@tabler/icons-react"
+import { IconMaximize, IconMinus, IconPlus, IconZoomScan } from "@tabler/icons-react"
 import type { HTMLAttributes } from "react"
 import { useStore } from "zustand"
 import type Handler from "../../lib/handlers/Handler"
@@ -29,7 +29,7 @@ export const CanvasZoomNav = ({ handler, ...props }: CanvasZoomNavProps) => {
             size="sm"
             theme="secondary"
             variant="outline"
-            prefix={<IconSelectAll />}
+            prefix={<IconZoomScan />}
             onClick={() => handler.zoomHandler.setZoomToSelection()}
           />
         </Tooltip>

@@ -1,5 +1,6 @@
 import { CanvasEvents, FabricObject, Point, util } from "fabric"
 import type Handler from "./Handler"
+import { check } from "../utils/check"
 
 class ZoomHandler {
   handler: Handler
@@ -89,12 +90,23 @@ class ZoomHandler {
    * Zoom the canvas to fit the active object
    */
   public setZoomToSelection() {
-    if (!this.handler.canvas._activeObject) return
+    const activeObject = this.getActiveObject()
+    if (!activeObject) return
 
-    const activeObject = this.handler.canvas._activeObject
     const zoom = this.getScale(activeObject)
 
     this.setZoom(zoom, activeObject)
+  }
+
+  /**
+   * Get the active object ignoring guide lines
+   */
+  private getActiveObject() {
+    const activeObject = this.handler.canvas.getActiveObject()
+
+    if (!check.isGuideLine(activeObject)) {
+      return activeObject
+    }
   }
 
   /**

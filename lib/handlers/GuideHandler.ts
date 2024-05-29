@@ -1,12 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
-    ActiveSelection,
-    Canvas,
-    CanvasEvents,
-    FabricObject,
-    Group,
-    Point,
-    StaticCanvas,
+  ActiveSelection,
+  Canvas,
+  CanvasEvents,
+  FabricObject,
+  Group,
+  Point,
+  StaticCanvas,
 } from "fabric"
 import type Handler from "./Handler"
 import { check } from "../utils/check"
@@ -38,7 +37,7 @@ type SnapParams = {
   snapYPoints: Set<number>
 }
 
-class GuideLineHandler {
+class GuideHandler {
   handler: Handler
 
   private aligningLineMargin = 7
@@ -420,4 +419,4 @@ class GuideLineHandler {
   }
 }
 
-export default GuideLineHandler
+export default GuideHandler

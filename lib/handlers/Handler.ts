@@ -15,7 +15,7 @@ import WorkspaceHandler from "./WorkspaceHandler"
 import ZoomHandler from "./ZoomHandler"
 import NudgeHandler from "./NudgeHandler"
 import RulerHandler from "./RulerHandler"
-import GuideLineHandler from "./GuideLineHandler"
+import GuideHandler from "./GuideHandler"
 import DrawingHandler from "./DrawingHandler"
 import ObjectHandler from "./ObjectHandler"
 import ControlsHandler from "./ControlsHandler"
@@ -71,7 +71,7 @@ class Handler implements HandlerOptions {
   public interactionHandler: InteractionHandler
   public nudgeHandler: NudgeHandler
   public rulerHandler: RulerHandler
-  public guideLineHandler: GuideLineHandler
+  public guideHandler: GuideHandler
   public objectHandler: ObjectHandler
   public controlsHandler: ControlsHandler
   public hoverHandler: HoverHandler
@@ -170,7 +170,7 @@ class Handler implements HandlerOptions {
     this.interactionHandler = new InteractionHandler(this)
     this.nudgeHandler = new NudgeHandler(this)
     this.rulerHandler = new RulerHandler(this)
-    this.guideLineHandler = new GuideLineHandler(this)
+    this.guideHandler = new GuideHandler(this)
     this.objectHandler = new ObjectHandler(this)
     this.controlsHandler = new ControlsHandler(this)
     this.hoverHandler = new HoverHandler(this)

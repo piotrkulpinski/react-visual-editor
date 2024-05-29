@@ -208,3 +208,7 @@ export type Rect = {
   width: number
   height: number
 }
+
+export type HighlightRect = Rect & {
+  skip?: "x" | "y"
+}

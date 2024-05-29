@@ -1,5 +1,5 @@
 import { throttle } from "radash"
-import type { Rect } from "../utils/types"
+import type { HighlightRect } from "../utils/types"
 import type Handler from "./Handler"
 
 type RulerDrawOptions = {
@@ -11,18 +11,32 @@ type RulerDrawOptions = {
 class RulerHandler {
   handler: Handler
 
+  // public tempGuideLine?: GuideLine
+  // private activeOn: string = "up"
+
+  // private lastAttr: {
+  //   hoveredRuler: false | "horizontal" | "vertical"
+  //   cursor: string
+  //   selection: boolean | undefined
+  // }
+
   /**
    * Caching event handlers
    */
   private eventHandler = {
     calculateActiveObjects: throttle({ interval: 20 }, this.calculateActiveObjects.bind(this)),
-    render: this.render.bind(this),
+    // onMouseDown: this.onMouseDown.bind(this),
+    // onMouseMove: throttle({ interval: 15 }, this.onMouseMove.bind(this)),
+    // onMouseUp: this.onMouseUp.bind(this),
+    // onGuideLineMoving: throttle({ interval: 15 }, this.onGuideLineMoving.bind(this)),
+    // onGuideLineMouseup: this.onGuideLineMouseup.bind(this),
+    onRender: this.onRender.bind(this),
   }
 
   /**
    * Active objects
    */
-  private activeObjects: undefined | { x: Rect[]; y: Rect[] }
+  private activeObjects: undefined | { x: HighlightRect[]; y: HighlightRect[] }
 
   constructor(handler: Handler) {
     this.handler = handler
@@ -30,22 +44,34 @@ class RulerHandler {
     // Bind events
     // TODO: Unbind events on destroy
     this.handler.canvas.on("after:render", this.eventHandler.calculateActiveObjects)
-    this.handler.canvas.on("after:render", this.eventHandler.render)
+    this.handler.canvas.on("after:render", this.eventHandler.onRender)
+
+    // this.lastAttr = {
+    //   hoveredRuler: false,
+    //   cursor: this.handler.canvas.defaultCursor,
+    //   selection: this.handler.canvas.selection,
+    // }
+
+    // this.handler.canvas.on({
+    //   "mouse:move": this.eventHandler.onMouseMove,
+    //   "mouse:down": this.eventHandler.onMouseDown,
+    //   "mouse:up": this.eventHandler.onMouseUp,
+    //   "guideline:moving": this.eventHandler.onGuideLineMoving,
+    //   "guideline:mouseup": this.eventHandler.onGuideLineMouseup,
+    // })
 
     // this.canvasEvents = {
     //   'after:render': this.render.bind(this),
     //   'mouse:move': this.mouseMove.bind(this),
     //   'mouse:down': this.mouseDown.bind(this),
     //   'mouse:up': this.mouseUp.bind(this),
-    //   'referenceline:moving': this.referenceLineMoving.bind(this),
-    //   'referenceline:mouseup': this.referenceLineMouseup.bind(this),
     // }
   }
 
   /**
    * Render the vertical and horizontal rulers
    */
-  public render() {
+  private onRender() {
     const { ruleSize, backgroundColor } = this.handler.rulerOptions
 
     const vpt = this.handler.canvas.viewportTransform
@@ -84,6 +110,122 @@ class RulerHandler {
       backgroundColor: backgroundColor,
     })
   }
+
+  // private onMouseDown(event: CanvasEvents["mouse:down"]) {
+  //   const { viewportPoint, scenePoint, e } = event
+  //   const hoveredRuler = this.getHoveredRuler(viewportPoint)
+
+  //   if (!hoveredRuler) return
+
+  //   if (this.activeOn === "up") {
+  //     this.lastAttr.selection = this.handler.canvas.selection
+  //     this.activeOn = "down"
+
+  //     this.tempGuideLine = new GuideLine(scenePoint[hoveredRuler === "horizontal" ? "y" : "x"], {
+  //       type: "GuideLine",
+  //       axis: hoveredRuler,
+  //       visible: false,
+  //       hasControls: false,
+  //       hasBorders: false,
+  //       stroke: "#01E4F5",
+  //       strokeWidth: 1,
+  //       originX: "center",
+  //       originY: "center",
+  //       padding: 4,
+  //     })
+
+  //     this.handler.canvas.selection = false
+  //     this.handler.canvas.add(this.tempGuideLine)
+  //     this.handler.canvas.setActiveObject(this.tempGuideLine)
+  //     this.handler.canvas.renderAll()
+  //     this.handler.canvas._setupCurrentTransform(e, this.tempGuideLine, true)
+  //   }
+
+  //   this.tempGuideLine?.fire("down", event)
+  // }
+
+  // private onMouseMove(event: CanvasEvents["mouse:move"]) {
+  //   const { viewportPoint, scenePoint } = event
+
+  //   if (this.tempGuideLine && viewportPoint) {
+  //     const pos: Partial<GuideLine> = {
+  //       top: this.tempGuideLine.axis === "horizontal" ? scenePoint.y : undefined,
+  //       left: this.tempGuideLine.axis === "vertical" ? scenePoint.x : undefined,
+  //     }
+
+  //     this.tempGuideLine.set({ ...pos, visible: true })
+
+  //     this.handler.canvas.renderAll()
+  //     this.handler.canvas.fire("object:moving", {
+  //       target: this.tempGuideLine,
+  //       transform: this.tempGuideLine.get("transform"),
+  //       ...event,
+  //     })
+  //     this.tempGuideLine.fire("moving", event)
+  //   }
+
+  //   const hoveredRuler = this.getHoveredRuler(viewportPoint)
+
+  //   this.handler.canvas.defaultCursor = this.lastAttr.cursor
+  //   if (!hoveredRuler) return
+  //   this.lastAttr.cursor = this.handler.canvas.defaultCursor
+  //   this.lastAttr.hoveredRuler = hoveredRuler
+  //   this.handler.canvas.defaultCursor = hoveredRuler === "horizontal" ? "ns-resize" : "ew-resize"
+  // }
+
+  // private onMouseUp(event: CanvasEvents["mouse:up"]) {
+  //   if (this.activeOn !== "down") return
+
+  //   this.activeOn = "up"
+
+  //   // Restore Attributes
+  //   this.handler.canvas.selection = this.lastAttr.selection ?? true
+  //   this.handler.canvas.renderAll()
+
+  //   // Clear the temporary guide line
+  //   if (this.tempGuideLine) {
+  //     this.tempGuideLine.selectable = false
+  //     this.tempGuideLine?.fire("up", event)
+  //     this.tempGuideLine = undefined
+  //   }
+  // }
+
+  // private onGuideLineMoving({ pointer, target }: any) {
+  //   if (this.getHoveredRuler(pointer)) {
+  //     target.moveCursor = "not-allowed"
+  //   } else {
+  //     target.moveCursor = target.isHorizontal() ? "ns-resize" : "ew-resize"
+  //   }
+  // }
+
+  // private onGuideLineMouseup({ pointer, target }: any) {
+  //   if (this.getHoveredRuler(pointer)) {
+  //     this.handler.canvas.remove(target)
+  //     this.handler.canvas.setCursor(this.handler.canvas.defaultCursor ?? "")
+  //   }
+  // }
+
+  // /**
+  //     Determine whether the mouse is on the ruler
+  //    * @param point
+  //    * @returns "vertical" | "horizontal" | false
+  //    */
+  // private getHoveredRuler(point: Point) {
+  //   const ruleSize = this.handler.rulerOptions.ruleSize
+  //   const canvas = this.handler.canvas
+  //   const vertical = new Rect({ left: 0, top: 0, width: ruleSize, height: canvas.height })
+  //   const horizontal = new Rect({ left: 0, top: 0, width: canvas.width, height: ruleSize })
+
+  //   if (vertical.containsPoint(point)) {
+  //     return "vertical"
+  //   }
+
+  //   if (horizontal.containsPoint(point)) {
+  //     return "horizontal"
+  //   }
+
+  //   return false
+  // }
 
   /**
    * Draw the ruler
@@ -162,7 +304,8 @@ class RulerHandler {
       return
     }
 
-    for (const object of this.activeObjects[axis]) {
+    for (const object of this.activeObjects[axis].filter(({ skip }) => skip !== axis)) {
+      console.log(object)
       const startValue = isHorizontal ? object.left : object.top
       const dimensionValue = isHorizontal ? object.width : object.height
 
@@ -256,6 +399,9 @@ class RulerHandler {
     }
   }
 
+  /**
+   * Calculate the active object to be displayed on the ruler
+   */
   private calculateActiveObjects() {
     const activeObjects = this.handler.canvas.getActiveObjects()
     const mergeLines = this.handler.drawingHandler.mergeLines
@@ -265,7 +411,15 @@ class RulerHandler {
       return
     }
 
-    const objects = activeObjects.map((obj) => obj.getBoundingRect())
+    const objects = activeObjects.map((object) => {
+      const rect: HighlightRect = object.getBoundingRect()
+
+      // if (object instanceof GuideLine) {
+      //   rect.skip = object.isHorizontal() ? "x" : "y"
+      // }
+
+      return rect
+    })
 
     this.activeObjects = {
       x: mergeLines(objects, true),

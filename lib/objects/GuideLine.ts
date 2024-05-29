@@ -1,13 +1,13 @@
-import { FabricObject, Line, classRegistry, Point } from "fabric"
+import { FabricObject, Line, classRegistry } from "fabric"
 
-export class ReferenceLine extends Line {
-  static type: string = "ReferenceLine"
+export class GuideLine extends Line {
+  static type: string = "GuideLine"
   public axis: string = ""
 
-  constructor(point: number | [number, number, number, number], options: any) {
+  constructor(point: number | [number, number, number, number], options: Partial<GuideLine>) {
     // Set a new point
     // point += 100
-    const size = 999999
+    const size = 99999
     let points = options.axis === "horizontal" ? [-size, 0, size, 0] : [0, -size, 0, size]
 
     if (typeof point === "object") {
@@ -37,28 +37,20 @@ export class ReferenceLine extends Line {
     })
 
     this.on("moving", (e) => {
-      if (this.isPointOnRuler(e.e)) {
-        this.moveCursor = "not-allowed"
-      } else {
-        this.moveCursor = this.isHorizontal() ? "ns-resize" : "ew-resize"
-      }
-
-      this.canvas?.fire("referenceline:moving", {
+      this.canvas?.fire("guideline:moving", {
         target: this,
         e: e.e,
+        pointer: e.pointer,
       })
     })
 
     this.on("mouseup", (e) => {
-      if (this.isPointOnRuler(e.e)) {
-        this.canvas?.remove(this)
-        return
-      }
       this.moveCursor = this.isHorizontal() ? "ns-resize" : "ew-resize"
-      this.selectable = false
-      this.canvas?.fire("referenceline:mouseup", {
+      // this.selectable = false
+      this.canvas?.fire("guideline:mouseup", {
         target: this,
         e: e.e,
+        pointer: e.pointer,
       })
       this.canvas?.fire("object:modified")
     })
@@ -85,21 +77,27 @@ export class ReferenceLine extends Line {
     return rect
   }
 
-  isPointOnRuler(e: any) {
-    const isHorizontal = this.isHorizontal()
-    const fabricCanvas = this.canvas!
-    const hoveredRuler = fabricCanvas.ruler?.getPointHover(new Point(e.offsetX, e.offsetY))
-    if (
-      (isHorizontal && hoveredRuler === "horizontal") ||
-      (!isHorizontal && hoveredRuler === "vertical")
-    ) {
-      return hoveredRuler
-    }
-    return false
-  }
-
   fire(eventName: any, options?: any) {
     super.fire(eventName, options)
+  }
+
+  _render(ctx: CanvasRenderingContext2D) {
+    const zoom = this.canvas?.getZoom() || 1
+
+    ctx.save()
+    ctx.transform(1 / zoom, 0, 0, 1 / zoom, 0, 0)
+    ctx.beginPath()
+
+    if (this.isHorizontal()) {
+      ctx.moveTo(-99999, 0)
+      ctx.lineTo(99999, 0)
+    } else {
+      ctx.moveTo(0, -99999)
+      ctx.lineTo(0, 99999)
+    }
+
+    this._renderStroke(ctx)
+    ctx.restore()
   }
 
   async fromObject(options: any): Promise<Line> {
@@ -110,4 +108,4 @@ export class ReferenceLine extends Line {
   }
 }
 
-classRegistry.setClass(ReferenceLine, "ReferenceLine")
+classRegistry.setClass(GuideLine, "GuideLine")

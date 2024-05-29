@@ -1,7 +1,7 @@
 import { FabricObject, ActiveSelection, Gradient, Pattern, Text, Group, Canvas } from "fabric"
 import { Group as NativeGroup } from "fabric"
+import { GuideLine } from "../objects/GuideLine"
 
-// Type Tool
 const isActiveSelection = (thing: unknown): thing is ActiveSelection => {
   return thing instanceof ActiveSelection
 }
@@ -14,11 +14,6 @@ const isCollection = (thing?: unknown): thing is Group | ActiveSelection | Canva
   return !!thing && Array.isArray((thing as Group)._objects)
 }
 
-/**
- * Determine whether it is a native group
- * @param thing
- * @returns NativeGroup | Group | Board
- */
 const isNativeGroup = (thing?: unknown): thing is NativeGroup => {
   return thing instanceof NativeGroup
 }
@@ -31,6 +26,10 @@ const isPattern = (thing: unknown): thing is Pattern => {
   return thing instanceof Pattern
 }
 
+const isGuideLine = (thing: unknown): thing is GuideLine => {
+  return thing instanceof GuideLine
+}
+
 const isTextObject = (thing?: FabricObject): thing is Text => {
   // we could use instanceof but that would mean pulling in Text code for a simple check
   // @todo discuss what to do and how to do
@@ -41,6 +40,7 @@ export const check = {
   isCollection,
   isGradient,
   isPattern,
+  isGuideLine,
   isActiveSelection,
   isTextObject,
   isGroup,
