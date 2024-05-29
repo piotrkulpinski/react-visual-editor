@@ -13,7 +13,7 @@ import EventHandler from "./EventHandler"
 import InteractionHandler from "./InteractionHandler"
 import WorkspaceHandler from "./WorkspaceHandler"
 import ZoomHandler from "./ZoomHandler"
-import NudgeHandler from "./NudgeHandler"
+import HistoryHandler from "./HistoryHandler"
 import RulerHandler from "./RulerHandler"
 import GuideHandler from "./GuideHandler"
 import DrawingHandler from "./DrawingHandler"
@@ -22,8 +22,7 @@ import ControlsHandler from "./ControlsHandler"
 import HoverHandler from "./HoverHandler"
 import { Canvas, CanvasOptions, FabricObject } from "fabric"
 import { Rect } from "fabric"
-import CopyPasteHandler from "./CopyPasteHandler"
-import DeleteHandler from "./DeleteHandler"
+import CommandHandler from "./CommandHandler"
 
 export type HandlerStore = {
   zoom: number
@@ -70,10 +69,9 @@ class Handler implements HandlerOptions {
   public drawingHandler: DrawingHandler
   public zoomHandler: ZoomHandler
   public workspaceHandler: WorkspaceHandler
+  public historyHandler: HistoryHandler
   public interactionHandler: InteractionHandler
-  public nudgeHandler: NudgeHandler
-  public copyPasteHandler: CopyPasteHandler
-  public deleteHandler: DeleteHandler
+  public commandHandler: CommandHandler
   public rulerHandler: RulerHandler
   public guideHandler: GuideHandler
   public objectHandler: ObjectHandler
@@ -102,50 +100,46 @@ class Handler implements HandlerOptions {
     }))
 
     // Zoom options
-    this.zoomOptions = Object.assign(
-      {
-        minZoom: 0.01,
-        maxZoom: 5,
-        steps: [0.05, 0.75, 0.125, 0.25, 0.5, 0.75, 1, 1.5, 2, 4],
-        fitRatio: 0.8,
-      },
-      options.zoomOptions
-    )
+    this.zoomOptions = {
+      minZoom: 0.01,
+      maxZoom: 5,
+      steps: [0.05, 0.75, 0.125, 0.25, 0.5, 0.75, 1, 1.5, 2, 4],
+      fitRatio: 0.8,
+      ...options.zoomOptions,
+    }
 
     // Workspace options
-    this.workspaceOptions = Object.assign(
-      {
-        id: "workspace",
-        width: 600,
-        height: 400,
-        fill: "#fff",
-        scaleX: 1,
-        scaleY: 1,
-        hasBorders: false,
-        hasControls: false,
-        selectable: false,
-        lockScalingX: true,
-        lockScalingY: true,
-        lockMovementX: true,
-        lockMovementY: true,
-        hoverCursor: "default",
-      },
-      options.workspaceOptions
-    )
+    this.workspaceOptions = {
+      id: "workspace",
+      width: 600,
+      height: 400,
+      fill: "#fff",
+      scaleX: 1,
+      scaleY: 1,
+      hasBorders: false,
+      hasControls: false,
+      selectable: false,
+      evented: false,
+      lockScalingX: true,
+      lockScalingY: true,
+      lockMovementX: true,
+      lockMovementY: true,
+      hoverCursor: "default",
+      ...options.workspaceOptions,
+    }
 
     // Ruler options
-    this.rulerOptions = Object.assign(
-      {
-        ruleSize: 20,
-        fontSize: 9,
-        backgroundColor: "#fff",
-        borderColor: "#e5e5e5",
-        highlightColor: "#007fff",
-        textColor: "#888888",
-        scaleColor: "#d4d4d4",
-      },
-      options.rulerOptions
-    )
+    this.rulerOptions = {
+      ruleSize: 20,
+      fontSize: 9,
+      backgroundColor: "#fff",
+      borderColor: "#e5e5e5",
+      highlightColor: "#007fff",
+      textColor: "#888888",
+      scaleColor: "#d4d4d4",
+      ...options.rulerOptions,
+    }
+
     // this.setPropertiesToInclude(options.propertiesToInclude)=
     // this.setObjectOption(options.objectOption)
     // this.setFabricObjects(options.fabricObjects)
@@ -170,10 +164,9 @@ class Handler implements HandlerOptions {
     this.drawingHandler = new DrawingHandler(this)
     this.zoomHandler = new ZoomHandler(this)
     this.workspaceHandler = new WorkspaceHandler(this)
+    this.historyHandler = new HistoryHandler(this)
     this.interactionHandler = new InteractionHandler(this)
-    this.nudgeHandler = new NudgeHandler(this)
-    this.copyPasteHandler = new CopyPasteHandler(this)
-    this.deleteHandler = new DeleteHandler(this)
+    this.commandHandler = new CommandHandler(this)
     this.rulerHandler = new RulerHandler(this)
     this.guideHandler = new GuideHandler(this)
     this.objectHandler = new ObjectHandler(this)

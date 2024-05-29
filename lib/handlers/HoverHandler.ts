@@ -15,7 +15,7 @@ class HoverHandler {
    * Show the controls when the mouse is over the object
    */
   private onMouseOver(e: CanvasEvents["mouse:over"]) {
-    if (e.target === this.handler.canvas._activeObject || !this.handler.canvas.selection) {
+    if (e.target === this.handler.canvas._activeObject || !e.target?.selectable) {
       return
     }
 
