@@ -22,6 +22,8 @@ import ControlsHandler from "./ControlsHandler"
 import HoverHandler from "./HoverHandler"
 import { Canvas, CanvasOptions, FabricObject } from "fabric"
 import { Rect } from "fabric"
+import CopyPasteHandler from "./CopyPasteHandler"
+import DeleteHandler from "./DeleteHandler"
 
 export type HandlerStore = {
   zoom: number
@@ -70,6 +72,8 @@ class Handler implements HandlerOptions {
   public workspaceHandler: WorkspaceHandler
   public interactionHandler: InteractionHandler
   public nudgeHandler: NudgeHandler
+  public copyPasteHandler: CopyPasteHandler
+  public deleteHandler: DeleteHandler
   public rulerHandler: RulerHandler
   public guideHandler: GuideHandler
   public objectHandler: ObjectHandler
@@ -81,7 +85,6 @@ class Handler implements HandlerOptions {
   // public workareaHandler: WorkareaHandler
   // public transactionHandler: TransactionHandler
   // public alignmentHandler: AlignmentHandler
-  // public guidelineHandler: GuidelineHandler
   // public shortcutHandler: ShortcutHandler
 
   constructor(options: HandlerOptions) {
@@ -169,6 +172,8 @@ class Handler implements HandlerOptions {
     this.workspaceHandler = new WorkspaceHandler(this)
     this.interactionHandler = new InteractionHandler(this)
     this.nudgeHandler = new NudgeHandler(this)
+    this.copyPasteHandler = new CopyPasteHandler(this)
+    this.deleteHandler = new DeleteHandler(this)
     this.rulerHandler = new RulerHandler(this)
     this.guideHandler = new GuideHandler(this)
     this.objectHandler = new ObjectHandler(this)
@@ -178,7 +183,6 @@ class Handler implements HandlerOptions {
     // this.contextmenuHandler = new ContextmenuHandler(this)
     // this.transactionHandler = new TransactionHandler(this)
     // this.alignmentHandler = new AlignmentHandler(this)
-    // this.guidelineHandler = new GuidelineHandler(this)
     // this.shortcutHandler = new ShortcutHandler(this)
     this.eventHandler = new EventHandler(this)
 

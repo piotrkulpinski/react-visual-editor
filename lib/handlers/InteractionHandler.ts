@@ -41,7 +41,6 @@ class InteractionHandler {
         break
       case InteractionMode.PAN:
         this.defaultSelection = this.handler.canvas.selection
-
         this.handler.canvas.discardActiveObject()
         this.handler.canvas.setCursor("grab")
         this.handler.canvas.selection = false

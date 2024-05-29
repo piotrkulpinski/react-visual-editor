@@ -305,7 +305,6 @@ class RulerHandler {
     }
 
     for (const object of this.activeObjects[axis].filter(({ skip }) => skip !== axis)) {
-      console.log(object)
       const startValue = isHorizontal ? object.left : object.top
       const dimensionValue = isHorizontal ? object.width : object.height
 
