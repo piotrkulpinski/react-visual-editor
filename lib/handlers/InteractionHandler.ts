@@ -18,6 +18,23 @@ class InteractionHandler {
       { key: "v", handler: () => this.setInteractionMode(InteractionMode.SELECT) },
       { key: "h", handler: () => this.setInteractionMode(InteractionMode.PAN) }
     )
+
+    // Register canvas events
+    this.handler.canvas.on("mouse:wheel", this.onMouseWheel.bind(this))
+  }
+
+  /**
+   * Mouse wheel event
+   */
+  private onMouseWheel({ e }: CanvasEvents["mouse:wheel"]) {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!e.metaKey) {
+      const delta = new Point(-e.deltaX, -e.deltaY)
+      this.handler.canvas.relativePan(delta)
+      this.handler.canvas.requestRenderAll()
+    }
   }
 
   /**

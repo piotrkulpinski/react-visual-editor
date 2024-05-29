@@ -28,11 +28,13 @@ class ZoomHandler {
     e.preventDefault()
     e.stopPropagation()
 
-    const zoom = this.handler.canvas.getZoom()
-    const mousePoint = new Point(e.layerX, e.layerY)
+    if (e.metaKey) {
+      const zoom = this.handler.canvas.getZoom()
+      const mousePoint = new Point(e.layerX, e.layerY)
 
-    // Zoom canvas to the mouse point
-    this.handler.zoomHandler.setZoom(zoom * 0.999 ** e.deltaY, undefined, mousePoint)
+      // Zoom canvas to the mouse point
+      this.handler.zoomHandler.setZoom(zoom * 0.999 ** e.deltaY, undefined, mousePoint)
+    }
   }
 
   /**
