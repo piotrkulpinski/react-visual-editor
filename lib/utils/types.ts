@@ -202,6 +202,13 @@ export enum InteractionMode {
   PAN = "pan",
 }
 
+export enum LayerCommand {
+  FORWARD = "forward",
+  BACKWARDS = "backwards",
+  FRONT = "front",
+  BACK = "back",
+}
+
 export type Rect = {
   left: number
   top: number

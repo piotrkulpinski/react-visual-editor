@@ -15,6 +15,8 @@ import WorkspaceHandler from "./WorkspaceHandler"
 import ZoomHandler from "./ZoomHandler"
 import HistoryHandler from "./HistoryHandler"
 import RulerHandler from "./RulerHandler"
+import CommandHandler from "./CommandHandler"
+import LayerHandler from "./LayerHandler"
 import GuideHandler from "./GuideHandler"
 import DrawingHandler from "./DrawingHandler"
 import ObjectHandler from "./ObjectHandler"
@@ -22,7 +24,6 @@ import ControlsHandler from "./ControlsHandler"
 import HoverHandler from "./HoverHandler"
 import { Canvas, CanvasOptions, FabricObject } from "fabric"
 import { Rect } from "fabric"
-import CommandHandler from "./CommandHandler"
 
 export type HandlerStore = {
   zoom: number
@@ -72,6 +73,7 @@ class Handler implements HandlerOptions {
   public historyHandler: HistoryHandler
   public interactionHandler: InteractionHandler
   public commandHandler: CommandHandler
+  public layerHandler: LayerHandler
   public rulerHandler: RulerHandler
   public guideHandler: GuideHandler
   public objectHandler: ObjectHandler
@@ -167,6 +169,7 @@ class Handler implements HandlerOptions {
     this.historyHandler = new HistoryHandler(this)
     this.interactionHandler = new InteractionHandler(this)
     this.commandHandler = new CommandHandler(this)
+    this.layerHandler = new LayerHandler(this)
     this.rulerHandler = new RulerHandler(this)
     this.guideHandler = new GuideHandler(this)
     this.objectHandler = new ObjectHandler(this)
