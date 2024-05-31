@@ -16,31 +16,26 @@ class ExportHandler {
    * @param multiplier The multiplier of the image
    */
   public exportImage(format: ImageFormat, quality = 0.9, multiplier = 1) {
-    const { canvas, workspace } = this.handler
-    const { left, top, width, height } = workspace
-
-    const zoom = canvas.getZoom()
-    const viewportTransform = canvas.viewportTransform
-
-    if (canvas.getActiveObject()) {
-      canvas.discardActiveObject()
-    }
-
-    const result = canvas.toDataURL({
-      quality,
-      format,
-      multiplier: multiplier / zoom,
-      width: width * zoom,
-      height: height * zoom,
-      left: left * zoom + viewportTransform[4],
-      top: top * zoom + viewportTransform[5],
-    })
+    const dataUrl = this.getCanvasDataUrl(format, quality, multiplier)
 
     // Save file
-    this.saveFile(result, format)
+    this.saveFile(dataUrl, format)
+  }
 
-    // Restore canvas
-    canvas.renderAll()
+  /**
+   * Export the current canvas to a clipboard
+   * @param format The format of the image
+   * @param quality The quality of the image
+   * @param multiplier The multiplier of the image
+   */
+  public async exportToClipboard(quality = 0.9, multiplier = 1) {
+    const dataUrl = this.getCanvasDataUrl("png", quality, multiplier)
+
+    navigator.clipboard.write([
+      new ClipboardItem({
+        "image/png": fetch(dataUrl).then((response) => response.blob()),
+      }),
+    ])
   }
 
   /**
@@ -69,10 +64,47 @@ class ExportHandler {
    */
   public exportJSON() {
     const json = this.handler.canvas.toJSON()
-    const blob = new Blob([JSON.stringify(json)])
+    const blob = new Blob([JSON.stringify(json)], { type: "application/json" })
 
     // Save file
     this.saveFile(blob, "json")
+  }
+
+  /**
+   * Get the data URL of the canvas
+   * @param format The format of the image
+   * @param quality The quality of the image
+   * @param multiplier The multiplier of the image
+   */
+  private getCanvasDataUrl(format: ImageFormat, quality = 0.9, multiplier = 1) {
+    const { canvas, workspace } = this.handler
+    const { left, top, width, height } = workspace
+
+    const zoom = canvas.getZoom()
+    const activeObject = canvas.getActiveObject()
+    const viewportTransform = canvas.viewportTransform
+
+    // Discard active object before exporting
+    activeObject && canvas.discardActiveObject()
+
+    const dataUrl = canvas.toDataURL({
+      quality,
+      format,
+      multiplier: multiplier / zoom,
+      width: width * zoom,
+      height: height * zoom,
+      left: left * zoom + viewportTransform[4],
+      top: top * zoom + viewportTransform[5],
+    })
+
+    // Restore canvas
+    canvas.requestRenderAll()
+
+    // Restore active object
+    activeObject && canvas.setActiveObject(activeObject)
+
+    // Return data URL
+    return dataUrl
   }
 
   /**

@@ -1,4 +1,3 @@
-import { throttle } from "radash"
 import type { HighlightRect } from "../utils/types"
 import type Handler from "./Handler"
 
@@ -24,7 +23,7 @@ class RulerHandler {
    * Caching event handlers
    */
   private eventHandler = {
-    calculateActiveObjects: throttle({ interval: 20 }, this.calculateActiveObjects.bind(this)),
+    // calculateActiveObjects: this.calculateActiveObjects.bind(this),
     // onMouseDown: this.onMouseDown.bind(this),
     // onMouseMove: throttle({ interval: 15 }, this.onMouseMove.bind(this)),
     // onMouseUp: this.onMouseUp.bind(this),
@@ -43,7 +42,7 @@ class RulerHandler {
 
     // Bind events
     // TODO: Unbind events on destroy
-    this.handler.canvas.on("after:render", this.eventHandler.calculateActiveObjects)
+    // this.handler.canvas.on("after:render", this.eventHandler.calculateActiveObjects)
     this.handler.canvas.on("after:render", this.eventHandler.onRender)
 
     // this.lastAttr = {
@@ -76,6 +75,9 @@ class RulerHandler {
 
     const vpt = this.handler.canvas.viewportTransform
     if (!vpt) return
+
+    // Calculate active objects
+    this.calculateActiveObjects()
 
     // Horizontal ruler
     this.draw({

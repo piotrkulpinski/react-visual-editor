@@ -109,9 +109,9 @@ class Handler implements HandlerOptions {
 
     // Zoom options
     this.zoomOptions = {
-      minZoom: 0.01,
+      minZoom: 0.05,
       maxZoom: 5,
-      steps: [0.05, 0.75, 0.125, 0.25, 0.5, 0.75, 1, 1.5, 2, 4],
+      steps: [0.125, 0.25, 0.5, 0.75, 1, 1.5, 2, 4],
       fitRatio: 0.8,
       ...options.zoomOptions,
     }

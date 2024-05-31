@@ -47,7 +47,12 @@ export const CanvasTopNav = ({ handler, className, ...props }: CanvasTopNavProps
 
       <ButtonGroup className="ml-auto">
         <Tooltip tooltip="Copy Image">
-          <Button size="xs" theme="secondary" variant="outline">
+          <Button
+            size="xs"
+            theme="secondary"
+            variant="outline"
+            onClick={() => handler.exportHandler.exportToClipboard()}
+          >
             <IconCopy className="my-0.5" />
           </Button>
         </Tooltip>
