@@ -94,7 +94,7 @@ class GuideHandler {
    */
   public onObjectMoving({ e, target }: CanvasEvents["object:moving"]) {
     // Disable the guidelines if the shift key is pressed or the object is not active
-    if (e.shiftKey || !this.handler.canvas._currentTransform) return
+    if (e.metaKey || !this.handler.canvas._currentTransform) return
 
     const activeObjects = this.handler.canvas.getActiveObjects()
     const parentObjects = this.getParentObjects(target)

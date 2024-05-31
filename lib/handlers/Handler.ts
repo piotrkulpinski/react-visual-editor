@@ -26,6 +26,7 @@ import HoverHandler from "./HoverHandler"
 import ExportHandler from "./ExportHandler"
 import { Canvas, CanvasOptions, FabricObject } from "fabric"
 import { Rect } from "fabric"
+import AxisLockHandler from "./AxisLockHandler"
 
 export type HandlerStore = {
   zoom: number
@@ -79,6 +80,7 @@ class Handler implements HandlerOptions {
   public rulerHandler: RulerHandler
   public guideHandler: GuideHandler
   public cloneHandler: CloneHandler
+  public axisLockHandler: AxisLockHandler
   public objectHandler: ObjectHandler
   public controlsHandler: ControlsHandler
   public hoverHandler: HoverHandler
@@ -177,6 +179,7 @@ class Handler implements HandlerOptions {
     this.rulerHandler = new RulerHandler(this)
     this.guideHandler = new GuideHandler(this)
     this.cloneHandler = new CloneHandler(this)
+    this.axisLockHandler = new AxisLockHandler(this)
     this.objectHandler = new ObjectHandler(this)
     this.controlsHandler = new ControlsHandler(this)
     this.hoverHandler = new HoverHandler(this)
