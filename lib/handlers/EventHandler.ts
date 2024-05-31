@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { CanvasEvents } from "fabric"
 import { InteractionMode } from "../utils/types"
 import type Handler from "./Handler"

@@ -53,7 +53,12 @@ export const CanvasTopNav = ({ handler, className, ...props }: CanvasTopNavProps
         </Tooltip>
 
         <Tooltip tooltip="Download Image">
-          <Button size="xs" theme="secondary" variant="outline">
+          <Button
+            size="xs"
+            theme="secondary"
+            variant="outline"
+            onClick={() => handler.exportHandler.exportImage("png", 1)}
+          >
             <IconDownload className="my-0.5" />
           </Button>
         </Tooltip>

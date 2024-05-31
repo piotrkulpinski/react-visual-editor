@@ -349,23 +349,6 @@ class GuideHandler {
   }
 
   /**
-   * Draw a sign to indicate the current object is aligned with the target object
-   */
-  private drawSign(x: number, y: number) {
-    const ctx = this.handler.canvas.getTopContext()
-
-    ctx.strokeStyle = this.aligningLineColor
-    ctx.beginPath()
-
-    const size = 3
-    ctx.moveTo(x - size, y - size)
-    ctx.lineTo(x + size, y + size)
-    ctx.moveTo(x + size, y - size)
-    ctx.lineTo(x - size, y + size)
-    ctx.stroke()
-  }
-
-  /**
    * Draw a line between two points
    */
   private drawLine(x1: number, y1: number, x2: number, y2: number) {
@@ -383,10 +366,6 @@ class GuideHandler {
     ctx.lineTo(point2.x, point2.y)
 
     ctx.stroke()
-
-    this.drawSign(point1.x, point1.y)
-    this.drawSign(point2.x, point2.y)
-
     ctx.restore()
   }
 
