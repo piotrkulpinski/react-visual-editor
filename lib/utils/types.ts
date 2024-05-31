@@ -207,6 +207,7 @@ export enum LayerCommand {
   BACKWARDS = "backwards",
   FRONT = "front",
   BACK = "back",
+  MOVE = "move",
 }
 
 export type Rect = {

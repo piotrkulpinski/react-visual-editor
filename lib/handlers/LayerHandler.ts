@@ -45,11 +45,17 @@ class LayerHandler {
   }
 
   /**
+   * Move the active object to a specific layer
+   */
+  public moveTo(layer: number) {
+    this.changeObjectLayer(LayerCommand.MOVE, layer)
+  }
+
+  /**
    * Change the layer of the active object
    */
-  private changeObjectLayer(command: LayerCommand) {
+  private changeObjectLayer(command: LayerCommand, layer?: number) {
     const activeObject = this.handler.canvas.getActiveObject()
-    console.log("layer change")
 
     if (!activeObject) return
 
@@ -65,6 +71,9 @@ class LayerHandler {
         break
       case LayerCommand.BACK:
         this.handler.canvas.sendObjectToBack(activeObject)
+        break
+      case LayerCommand.MOVE:
+        layer && this.handler.canvas.moveObjectTo(activeObject, layer)
         break
       default:
         break

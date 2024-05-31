@@ -1,4 +1,3 @@
-/** eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react"
 import { Canvas } from "../lib/components/Canvas"
 import type Handler from "../lib/handlers/Handler"
@@ -7,7 +6,6 @@ import { CanvasInteractionNav } from "./components/CanvasInteractionNav"
 import { CanvasTopNav } from "./components/CanvasTopNav"
 
 export default function App() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [handler, setHandler] = useState<Handler | null>(null)
 
   return (
