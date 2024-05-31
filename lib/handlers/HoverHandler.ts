@@ -7,8 +7,10 @@ class HoverHandler {
   constructor(handler: Handler) {
     this.handler = handler
 
-    this.handler.canvas.on("mouse:over", this.onMouseOver.bind(this))
-    this.handler.canvas.on("mouse:out", this.onMouseOut.bind(this))
+    this.handler.canvas.on({
+      "mouse:over": this.onMouseOver.bind(this),
+      "mouse:out": this.onMouseOut.bind(this),
+    })
   }
 
   /**

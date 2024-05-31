@@ -38,6 +38,9 @@ class ExportHandler {
 
     // Save file
     this.saveFile(result, format)
+
+    // Restore canvas
+    canvas.renderAll()
   }
 
   /**

@@ -18,6 +18,7 @@ import RulerHandler from "./RulerHandler"
 import CommandHandler from "./CommandHandler"
 import LayerHandler from "./LayerHandler"
 import GuideHandler from "./GuideHandler"
+import CloneHandler from "./CloneHandler"
 import DrawingHandler from "./DrawingHandler"
 import ObjectHandler from "./ObjectHandler"
 import ControlsHandler from "./ControlsHandler"
@@ -77,6 +78,7 @@ class Handler implements HandlerOptions {
   public layerHandler: LayerHandler
   public rulerHandler: RulerHandler
   public guideHandler: GuideHandler
+  public cloneHandler: CloneHandler
   public objectHandler: ObjectHandler
   public controlsHandler: ControlsHandler
   public hoverHandler: HoverHandler
@@ -174,6 +176,7 @@ class Handler implements HandlerOptions {
     this.layerHandler = new LayerHandler(this)
     this.rulerHandler = new RulerHandler(this)
     this.guideHandler = new GuideHandler(this)
+    this.cloneHandler = new CloneHandler(this)
     this.objectHandler = new ObjectHandler(this)
     this.controlsHandler = new ControlsHandler(this)
     this.hoverHandler = new HoverHandler(this)
