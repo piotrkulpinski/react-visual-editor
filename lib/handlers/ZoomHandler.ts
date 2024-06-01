@@ -28,12 +28,13 @@ class ZoomHandler {
     e.preventDefault()
     e.stopPropagation()
 
-    if (e.metaKey) {
+    if (e.metaKey || e.ctrlKey) {
+      const multiplier = e.metaKey ? 0.999 : 0.99
       const zoom = this.handler.canvas.getZoom()
       const mousePoint = new Point(e.layerX, e.layerY)
 
       // Zoom canvas to the mouse point
-      this.handler.zoomHandler.setZoom(zoom * 0.999 ** e.deltaY, undefined, mousePoint)
+      this.handler.zoomHandler.setZoom(zoom * multiplier ** e.deltaY, undefined, mousePoint)
     }
   }
 
