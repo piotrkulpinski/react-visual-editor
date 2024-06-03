@@ -2,12 +2,12 @@ import hotkeys from "hotkeys-js"
 import { debounce } from "radash"
 import { type StoreApi, createStore } from "zustand"
 import {
-  type HandlerOptions,
-  type HotkeyHandler,
-  InteractionMode,
-  type WorkspaceOptions,
-  type ZoomOptions,
-  RulerOptions,
+    type HandlerOptions,
+    type HotkeyHandler,
+    InteractionMode,
+    type WorkspaceOptions,
+    type ZoomOptions,
+    RulerOptions,
 } from "../utils/types"
 import EventHandler from "./EventHandler"
 import InteractionHandler from "./InteractionHandler"
@@ -420,75 +420,6 @@ class Handler implements HandlerOptions {
   // }
 
   // /**
-  //  * Add object
-  //  * @param {FabricObjectOption} obj
-  //  * @param {boolean} [centered=true]
-  //  * @param {boolean} [loaded=false]
-  //  * @param {boolean} [group=false]
-  //  * @returns
-  //  */
-  // public add = (obj: FabricObjectOption, centered = true, loaded = false, group = false) => {
-  //   const { editable, onAdd, objectOption } = this
-  //   const option: any = {
-  //     hasControls: editable,
-  //     hasBorders: editable,
-  //     selectable: editable,
-  //     lockMovementX: !editable,
-  //     lockMovementY: !editable,
-  //     hoverCursor: !editable ? "pointer" : "move",
-  //   }
-  //   if (obj.type === "i-text") {
-  //     option.editable = false
-  //   } else {
-  //     option.editable = editable
-  //   }
-  //   if (editable && this.workarea?.layout === "fullscreen") {
-  //     option.scaleX = this.workarea.scaleX
-  //     option.scaleY = this.workarea.scaleY
-  //   }
-  //   const newOption = Object.assign(
-  //     {},
-  //     objectOption,
-  //     obj,
-  //     {
-  //       container: this.container.id,
-  //       editable,
-  //     },
-  //     option,
-  //   )
-  //   let createdObj
-  //   // Create canvas object
-  //   if (obj.type === "image") {
-  //     createdObj = this.addImage(newOption)
-  //   } else if (obj.type === "group") {
-  //     createdObj = this.addGroup(newOption)
-  //   } else {
-  //     createdObj = this.fabricObjects[obj.type].create(newOption)
-  //   }
-  //   if (group) {
-  //     return createdObj
-  //   }
-  //   this.canvas.add(createdObj)
-  //   this.objects = this.getObjects()
-  //   if (!editable) {
-  //     createdObj.on("mousedown", this.eventHandler.object.mousedown)
-  //   }
-  //   if (createdObj.dblclick) {
-  //     createdObj.on("mousedblclick", this.eventHandler.object.mousedblclick)
-  //   }
-  //   if (editable && !loaded) {
-  //     this.centerObject(createdObj, centered)
-  //   }
-  //   if (!this.transactionHandler.active && !loaded) {
-  //     this.transactionHandler.save("add")
-  //   }
-  //   if (onAdd && editable && !loaded) {
-  //     onAdd(createdObj)
-  //   }
-  //   return createdObj
-  // }
-
-  // /**
   //  * Add group object
   //  *
   //  * @param {FabricGroup} obj
@@ -526,46 +457,6 @@ class Handler implements HandlerOptions {
   // }
 
   // /**
-  //  * Remove object
-  //  * @param {FabricObject} target
-  //  * @returns {any}
-  //  */
-  // public remove = (target?: FabricObject) => {
-  //   const activeObject = target || (this.canvas.getActiveObject() as any)
-
-  //   if (!activeObject) {
-  //     return
-  //   }
-  //   if (typeof activeObject.deletable !== "undefined" && !activeObject.deletable) {
-  //     return
-  //   }
-  //   if (activeObject.type !== "activeSelection") {
-  //     this.canvas.discardActiveObject()
-  //     this.canvas.remove(activeObject)
-  //   } else {
-  //     const { _objects: activeObjects } = activeObject
-  //     const existDeleted = activeObjects.some(
-  //       (obj: any) => typeof obj.deletable !== "undefined" && !obj.deletable,
-  //     )
-  //     if (existDeleted) {
-  //       return
-  //     }
-  //     this.canvas.discardActiveObject()
-  //     activeObjects.forEach((obj: any) => {
-  //       this.canvas.remove(obj)
-  //     })
-  //   }
-  //   if (!this.transactionHandler.active) {
-  //     this.transactionHandler.save("remove")
-  //   }
-  //   this.objects = this.getObjects()
-  //   const { onRemove } = this
-  //   if (onRemove) {
-  //     onRemove(activeObject)
-  //   }
-  // }
-
-  // /**
   //  * Remove object by id
   //  * @param {string} id
   //  */
@@ -585,205 +476,6 @@ class Handler implements HandlerOptions {
   //   if (object.index > 0) {
   //     this.objects.splice(object.index, 1)
   //   }
-  // }
-
-  // /**
-  //  * Duplicate object
-  //  * @returns
-  //  */
-  // public duplicate = () => {
-  //   const { onAdd, propertiesToInclude } = this
-  //   const activeObject = this.canvas.getActiveObject() as FabricObject
-  //   if (!activeObject) {
-  //     return
-  //   }
-  //   if (typeof activeObject.cloneable !== "undefined" && !activeObject.cloneable) {
-  //     return
-  //   }
-  //   activeObject.clone((clonedObj: FabricObject) => {
-  //     this.canvas.discardActiveObject()
-  //     clonedObj.set({
-  //       left: clonedObj.left + 10,
-  //       top: clonedObj.top + 10,
-  //       evented: true,
-  //     })
-  //     if (clonedObj.type === "activeSelection") {
-  //       const activeSelection = clonedObj as fabric.ActiveSelection
-  //       activeSelection.canvas = this.canvas
-  //       activeSelection.forEachObject((obj: any) => {
-  //         obj.set("id", uuid())
-  //         this.canvas.add(obj)
-  //         this.objects = this.getObjects()
-  //         if (obj.dblclick) {
-  //           obj.on("mousedblclick", this.eventHandler.object.mousedblclick)
-  //         }
-  //       })
-  //       if (onAdd) {
-  //         onAdd(activeSelection)
-  //       }
-  //       activeSelection.setCoords()
-  //     } else {
-  //       if (activeObject.id === clonedObj.id) {
-  //         clonedObj.set("id", uuid())
-  //       }
-  //       this.canvas.add(clonedObj)
-  //       this.objects = this.getObjects()
-  //       if (clonedObj.dblclick) {
-  //         clonedObj.on("mousedblclick", this.eventHandler.object.mousedblclick)
-  //       }
-  //       if (onAdd) {
-  //         onAdd(clonedObj)
-  //       }
-  //     }
-  //     this.canvas.setActiveObject(clonedObj)
-  //     this.canvas.requestRenderAll()
-  //   }, propertiesToInclude)
-  // }
-
-  // /**
-  //  * Duplicate object by id
-  //  * @param {string} id
-  //  * @returns
-  //  */
-  // public duplicateById = (id: string) => {
-  //   const { onAdd, propertiesToInclude } = this
-  //   const findObject = this.findById(id)
-  //   if (findObject) {
-  //     if (typeof findObject.cloneable !== "undefined" && !findObject.cloneable) {
-  //       return false
-  //     }
-  //     findObject.clone((cloned: FabricObject) => {
-  //       cloned.set({
-  //         left: cloned.left + 10,
-  //         top: cloned.top + 10,
-  //         id: uuid(),
-  //         evented: true,
-  //       })
-  //       this.canvas.add(cloned)
-  //       this.objects = this.getObjects()
-  //       if (onAdd) {
-  //         onAdd(cloned)
-  //       }
-  //       if (cloned.dblclick) {
-  //         cloned.on("mousedblclick", this.eventHandler.object.mousedblclick)
-  //       }
-  //       this.canvas.setActiveObject(cloned)
-  //       this.canvas.requestRenderAll()
-  //     }, propertiesToInclude)
-  //   }
-  //   return true
-  // }
-
-  // /**
-  //  * Cut object
-  //  *
-  //  */
-  // public cut = () => {
-  //   this.copy()
-  //   this.remove()
-  //   this.isCut = true
-  // }
-
-  // /**
-  //  * Copy to clipboard
-  //  *
-  //  * @param {*} value
-  //  */
-  // public copyToClipboard = (value: any) => {
-  //   const textarea = document.createElement("textarea")
-  //   document.body.appendChild(textarea)
-  //   textarea.value = value
-  //   textarea.select()
-  //   document.execCommand("copy")
-  //   document.body.removeChild(textarea)
-  //   this.canvas.wrapperEl.focus()
-  // }
-
-  // /**
-  //  * Copy object
-  //  *
-  //  * @returns
-  //  */
-  // public copy = () => {
-  //   const { propertiesToInclude } = this
-  //   const activeObject = this.canvas.getActiveObject() as FabricObject
-  //   if (activeObject) {
-  //     if (typeof activeObject.cloneable !== "undefined" && !activeObject.cloneable) {
-  //       return false
-  //     }
-
-  //     activeObject.clone((cloned: FabricObject) => {
-  //       if (this.keyEvent.clipboard) {
-  //         this.copyToClipboard(JSON.stringify(cloned.toObject(propertiesToInclude), null, "\t"))
-  //       } else {
-  //         this.clipboard = cloned
-  //       }
-  //     }, propertiesToInclude)
-  //   }
-  //   return true
-  // }
-
-  // /**
-  //  * Paste object
-  //  *
-  //  * @returns
-  //  */
-  // public paste = () => {
-  //   const { onAdd, propertiesToInclude, clipboard, isCut } = this
-  //   const padding = isCut ? 0 : 10
-  //   if (!clipboard) {
-  //     return false
-  //   }
-  //   if (typeof clipboard.cloneable !== "undefined" && !clipboard.cloneable) {
-  //     return false
-  //   }
-  //   this.isCut = false
-  //   clipboard.clone((clonedObj: any) => {
-  //     this.canvas.discardActiveObject()
-  //     clonedObj.set({
-  //       left: clonedObj.left + padding,
-  //       top: clonedObj.top + padding,
-  //       id: isCut ? clipboard.id : uuid(),
-  //       evented: true,
-  //     })
-  //     if (clonedObj.type === "activeSelection") {
-  //       clonedObj.canvas = this.canvas
-  //       clonedObj.forEachObject((obj: any) => {
-  //         obj.set("id", isCut ? obj.id : uuid())
-  //         this.canvas.add(obj)
-  //         if (obj.dblclick) {
-  //           obj.on("mousedblclick", this.eventHandler.object.mousedblclick)
-  //         }
-  //       })
-  //     } else {
-  //       this.canvas.add(clonedObj)
-  //       if (clonedObj.dblclick) {
-  //         clonedObj.on("mousedblclick", this.eventHandler.object.mousedblclick)
-  //       }
-  //     }
-  //     const newClipboard = clipboard.set({
-  //       top: clonedObj.top,
-  //       left: clonedObj.left,
-  //     })
-  //     if (isCut) {
-  //       this.clipboard = null
-  //     } else {
-  //       this.clipboard = newClipboard
-  //     }
-  //     if (!this.transactionHandler.active) {
-  //       this.transactionHandler.save("paste")
-  //     }
-  //     // TODO...
-  //     // After toGroup svg elements not rendered.
-  //     this.objects = this.getObjects()
-  //     if (onAdd) {
-  //       onAdd(clonedObj)
-  //     }
-  //     clonedObj.setCoords()
-  //     this.canvas.setActiveObject(clonedObj)
-  //     this.canvas.requestRenderAll()
-  //   }, propertiesToInclude)
-  //   return true
   // }
 
   // /**
@@ -1173,24 +865,33 @@ class Handler implements HandlerOptions {
    * Add object or selection to canvas
    * @param object - Fabric object to add
    */
-  public addObject(object: FabricObject) {
+  public addObject(object: FabricObject, options?: { skipHistory?: boolean; setActive?: boolean }) {
     const objects = check.isActiveSelection(object) ? object.getObjects() : [object]
 
     for (const obj of objects) {
       this.canvas.add(obj)
     }
+
+    // Set active object
+    options?.setActive && this.canvas.setActiveObject(object)
+
+    // Save history action
+    !options?.skipHistory && this.historyHandler.save()
   }
 
   /**
    * Remove object or selection from canvas
    * @param object - Fabric object to remove
    */
-  public removeObject(object: FabricObject) {
+  public removeObject(object: FabricObject, options?: { skipHistory?: boolean }) {
     const objects = check.isActiveSelection(object) ? object.getObjects() : [object]
 
     for (const obj of objects) {
       this.canvas.remove(obj)
     }
+
+    // Save history action
+    !options?.skipHistory && this.historyHandler.save()
   }
 
   /**

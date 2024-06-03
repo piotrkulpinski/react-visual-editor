@@ -1,4 +1,4 @@
-import { Rect, Textbox, FabricObject } from "fabric"
+import { Rect, Textbox } from "fabric"
 import Handler from "./Handler"
 import { getRandomColor } from "@curiousleaf/utils"
 
@@ -14,12 +14,6 @@ class ObjectHandler {
     )
   }
 
-  public addObject(object: FabricObject) {
-    this.handler.canvas.add(object)
-    this.handler.canvas.setActiveObject(object)
-    this.handler.canvas.renderAll()
-  }
-
   public addText(text: string) {
     const textObject = new Textbox(text, {
       left: 10,
@@ -29,7 +23,8 @@ class ObjectHandler {
       fontSize: 16,
       width: 160,
     })
-    this.addObject(textObject)
+
+    this.handler.addObject(textObject, { setActive: true })
   }
 
   public addRect() {
@@ -40,7 +35,8 @@ class ObjectHandler {
       height: 100,
       fill: `#${getRandomColor()}`,
     })
-    this.addObject(rect)
+
+    this.handler.addObject(rect, { setActive: true })
   }
 }
 

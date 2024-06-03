@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { CanvasEvents } from "fabric"
 import { InteractionMode } from "../utils/types"
 import type Handler from "./Handler"
@@ -33,18 +34,12 @@ class EventHandler {
    */
   public initialize() {
     this.handler.canvas.on({
-      // "object:modified": this.modified,
-      // "object:scaling": this.scaling,
-      // "object:scaled": this.scaled,
-      // "object:moving": this.moving,
-      // "object:moved": this.moved,
-      // "object:rotating": this.rotating,
-      // "object:rotated": this.rotated,
-      "mouse:down:before": this.onMouseDownBefore,
-      "mouse:down": this.onMouseDown,
-      "mouse:up:before": this.onMouseUpBefore,
-      "mouse:up": this.onMouseUp,
-      "mouse:move": this.onMouseMove,
+      "object:modified": this.onObjectModified.bind(this),
+      "mouse:down:before": this.onMouseDownBefore.bind(this),
+      "mouse:down": this.onMouseDown.bind(this),
+      "mouse:up:before": this.onMouseUpBefore.bind(this),
+      "mouse:up": this.onMouseUp.bind(this),
+      "mouse:move": this.onMouseMove.bind(this),
       // "selection:cleared": this.selection,
       // "selection:created": this.selection,
       // "selection:updated": this.selection,
@@ -56,11 +51,7 @@ class EventHandler {
    */
   public destroy() {
     this.handler.canvas.off({
-      // "object:modified": this.modified,
-      // "object:scaling": this.scaling,
-      // "object:moving": this.moving,
-      // "object:moved": this.moved,
-      // "object:rotating": this.rotating,
+      "object:modified": this.onObjectModified,
       "mouse:down:before": this.onMouseDownBefore,
       "mouse:down": this.onMouseDown,
       "mouse:up:before": this.onMouseUpBefore,
@@ -75,65 +66,9 @@ class EventHandler {
   /**
    * Modified event object
    */
-  // public modified = (opt: FabricEvent) => {
-  //   const { target } = opt
-  //   if (!target) {
-  //     return
-  //   }
-  //   if (target.type === "circle" && target.parentId) {
-  //     return
-  //   }
-  //   const { onModified } = this.handler
-  //   if (onModified) {
-  //     onModified(target)
-  //   }
-  // }
-
-  // /**
-  //  * Moving event object
-  //  */
-  // public moving = ({ target }: FabricEvent) => {
-  //   if (this.handler.editable && this.handler.guidelineOption.enabled) {
-  //     this.handler.guidelineHandler.movingGuidelines(target)
-  //   }
-  // }
-
-  // /**
-  //  * Moved event object
-  //  */
-  // public moved = ({ target }: FabricEvent) => {
-  //   if (!this.handler.transactionHandler.active) {
-  //     this.handler.transactionHandler.save("moved")
-  //   }
-  // }
-
-  // /**
-  //  * Scaling event object
-  //  */
-  // public scaling = ({ target }: FabricEvent) => {}
-
-  // /**
-  //  * Scaled event object
-  //  */
-  // public scaled = (_opt: FabricEvent) => {
-  //   if (!this.handler.transactionHandler.active) {
-  //     this.handler.transactionHandler.save("scaled")
-  //   }
-  // }
-
-  // /**
-  //  * Rotating event object
-  //  */
-  // public rotating = ({ target }: FabricEvent) => {}
-
-  // /**
-  //  * Rotated event object
-  //  */
-  // public rotated = (_opt: FabricEvent) => {
-  //   if (!this.handler.transactionHandler.active) {
-  //     this.handler.transactionHandler.save("rotated")
-  //   }
-  // }
+  private onObjectModified = () => {
+    this.handler.historyHandler.save()
+  }
 
   /**
    * Mouse down before event
@@ -159,6 +94,7 @@ class EventHandler {
   /**
    * Mouse up before event
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private onMouseUpBefore = (_: CanvasEvents["mouse:up:before"]) => {
     this.isMiddleClicked = false
   }

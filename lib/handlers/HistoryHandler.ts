@@ -1,14 +1,14 @@
-import { CanvasEvents } from "fabric"
+import { throttle } from "radash"
 import type Handler from "./Handler"
-
-type HistoryAction = string | Record<string, any>
+import { FabricObject, util } from "fabric"
 
 class HistoryHandler {
   handler: Handler
-  isProcessing: boolean = false
-  currentState: number = -1
-  history: HistoryAction[] = []
-  extraProps = ["selectable", "editable"]
+
+  undoStack: string[] = []
+  redoStack: string[] = []
+  state: string = "[]"
+  isActive: boolean = false
 
   constructor(handler: Handler) {
     this.handler = handler
@@ -17,71 +17,66 @@ class HistoryHandler {
       { key: "cmd+z", handler: () => this.undo() },
       { key: "cmd+shift+z", handler: () => this.redo() }
     )
-
-    this.handler.canvas.on({
-      "object:added": this.saveAction.bind(this),
-      "object:removed": this.saveAction.bind(this),
-      "object:modified": this.saveAction.bind(this),
-      "object:skewing": this.saveAction.bind(this),
-    })
   }
 
-  public undo(callback?: () => void) {
-    if (this.currentState > 0) {
-      this.processAction(this.currentState - 1, "history:undo", callback)
+  /**
+   * Save action
+   */
+  public save = () => {
+    if (this.isActive) return
+
+    if (this.state) {
+      this.redoStack = []
+      this.undoStack.push(this.state)
     }
+
+    this.state = JSON.stringify(this.handler.getObjects())
   }
 
-  public redo(callback?: () => void) {
-    if (this.currentState < this.history.length - 1) {
-      this.processAction(this.currentState + 1, "history:redo", callback)
-    }
-  }
+  /**
+   * Undo last action
+   */
+  public undo = throttle({ interval: 100 }, () => {
+    if (!this.undoStack.length) return
 
-  public canUndo() {
-    return this.currentState > 0
-  }
+    const undo = this.undoStack.pop()!
+    this.redoStack.push(this.state)
+    this.replay(undo)
+  })
 
-  public canRedo() {
-    return this.currentState < this.history.length - 1
-  }
+  /**
+   * Redo last action
+   */
+  public redo = throttle({ interval: 100 }, () => {
+    if (!this.redoStack.length) return
 
-  public clearHistory() {
-    this.history = []
-    this.currentState = -1
-    this.handler.canvas.fire("history:clear")
-  }
+    const redo = this.redoStack.pop()!
+    this.undoStack.push(this.state)
+    this.replay(redo)
+  })
 
-  private processAction(stateIndex: number, event: keyof CanvasEvents, callback?: () => void) {
-    this.isProcessing = true
-    const history = this.history[stateIndex]
-    if (history) {
-      this.currentState = stateIndex
-      this.loadHistory(history, event, callback)
-    } else {
-      this.isProcessing = false
-    }
-  }
+  /**
+   * Replay action from state
+   *
+   * @param state - State to replay
+   */
+  private replay = (state: string) => {
+    const objects = JSON.parse(state) as FabricObject[]
 
-  private saveAction() {
-    if (this.isProcessing) return
-    const json = this.nextAction()
-    this.history = this.history.slice(0, this.currentState + 1)
-    this.history.push(json)
-    this.currentState = this.history.length - 1
-    this.handler.canvas.fire("history:append", { json })
-  }
+    this.state = state
+    this.isActive = true
+    this.handler.canvas.renderOnAddRemove = false
+    this.handler.clear()
 
-  private nextAction() {
-    return JSON.stringify(this.handler.canvas.toDatalessJSON(this.extraProps))
-  }
+    util.enlivenObjects(objects).then((objects) => {
+      objects.forEach((object) => {
+        const targetIndex = this.handler.canvas._objects.length
+        this.handler.canvas.insertAt(targetIndex, object as FabricObject)
+      })
 
-  private loadHistory(history: HistoryAction, event: keyof CanvasEvents, callback?: () => void) {
-    this.handler.canvas.loadFromJSON(history, () => {
+      this.handler.canvas.renderOnAddRemove = true
       this.handler.canvas.requestRenderAll()
-      this.handler.canvas.fire(event)
-      this.isProcessing = false
-      callback?.()
+      this.isActive = false
     })
   }
 }
