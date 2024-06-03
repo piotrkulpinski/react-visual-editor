@@ -30,6 +30,7 @@ class InteractionHandler {
     e.preventDefault()
     e.stopPropagation()
 
+    // ctrlKey is set when pinch-zoom is detected
     if (!e.metaKey && !e.ctrlKey) {
       const delta = new Point(-e.deltaX, -e.deltaY)
       this.handler.canvas.relativePan(delta)

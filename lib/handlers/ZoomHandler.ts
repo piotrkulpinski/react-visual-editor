@@ -28,9 +28,10 @@ class ZoomHandler {
     e.preventDefault()
     e.stopPropagation()
 
+    // ctrlKey is set when pinch-zoom is detected
     if (e.metaKey || e.ctrlKey) {
-      const multiplier = e.metaKey ? 0.999 : 0.99
       const zoom = this.handler.canvas.getZoom()
+      const multiplier = e.metaKey ? 0.9975 : 0.99
       const mousePoint = new Point(e.layerX, e.layerY)
 
       // Zoom canvas to the mouse point

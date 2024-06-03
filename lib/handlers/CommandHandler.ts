@@ -1,6 +1,5 @@
 import { ActiveSelection, FabricObject } from "fabric"
 import type Handler from "./Handler"
-import { check } from "../utils/check"
 
 class CommandHandler {
   handler: Handler
@@ -73,11 +72,10 @@ class CommandHandler {
    * Delete active objects
    */
   public delete() {
-    const activeObjects = this.handler.canvas.getActiveObjects()
+    const activeObject = this.handler.canvas.getActiveObject()
 
-    if (activeObjects) {
-      activeObjects.map((item) => this.handler.canvas.remove(item))
-
+    if (activeObject) {
+      this.handler.removeObject(activeObject)
       this.handler.canvas.discardActiveObject()
       this.handler.canvas.requestRenderAll()
     }
@@ -165,14 +163,7 @@ class CommandHandler {
       })
     }
 
-    if (check.isActiveSelection(clone)) {
-      for (const object of clone.getObjects()) {
-        this.handler.canvas.add(object)
-      }
-    } else {
-      this.handler.canvas.add(clone)
-    }
-
+    this.handler.addObject(clone)
     this.handler.canvas.setActiveObject(clone)
     this.handler.canvas.requestRenderAll()
   }

@@ -1,6 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { CanvasEvents, FabricObject } from "fabric"
 import type Handler from "./Handler"
-import { check } from "../utils/check"
 
 class CloneHandler {
   handler: Handler
@@ -11,62 +11,55 @@ class CloneHandler {
   constructor(handler: Handler) {
     this.handler = handler
 
+    // Register hotkeys
+    this.handler.registerHotkeyHandlers({
+      key: "*",
+      handler: this.onKeyPressed.bind(this),
+    })
+
     this.handler.canvas.on({
       "mouse:down": this.onMouseDown.bind(this),
-      "object:moving": this.onObjectMoving.bind(this),
-      "object:modified": this.onObjectModified.bind(this),
+      "mouse:up": this.onMouseUp.bind(this),
     })
+  }
+
+  /**
+   * Handle the key press event
+   */
+  private async onKeyPressed(e: KeyboardEvent) {
+    if (e.type === "keyup" && !e.altKey && this.cloneObject) {
+      this.handler.removeObject(this.cloneObject)
+      this.cloneObject = undefined
+    }
+
+    // If the alt key is pressed create a clone of the object
+    if (e.type === "keydown" && e.altKey && !this.cloneObject && this.originalObject) {
+      this.cloneObject = await this.originalObject.clone()
+      this.handler.addObject(this.cloneObject)
+    }
   }
 
   /**
    * Store the original object when the mouse is down
    */
-  private async onMouseDown({ target }: CanvasEvents["mouse:down"]) {
+  private async onMouseDown({ target, e }: CanvasEvents["mouse:down"]) {
     if (target?.selectable && !this.cloneObject) {
       this.originalObject = await target.clone()
     }
-  }
 
-  /**
-   * Clone the object when the mouse is moving
-   */
-  private async onObjectMoving({ target, e }: CanvasEvents["object:moving"]) {
-    // If the alt key is pressed create a clone of the object
-    if (e.altKey && !this.cloneObject) {
-      this.cloneObject = await target.clone()
-
-      if (check.isActiveSelection(this.cloneObject)) {
-        for (const object of this.cloneObject.getObjects()) {
-          this.handler.canvas.add(object)
-        }
-      } else {
-        this.handler.canvas.add(this.cloneObject)
-      }
-    }
-
-    // If the alt is released, remove the clone object
-    if (!e.altKey && this.cloneObject) {
-      this.handler.canvas.remove(this.cloneObject)
-      this.cloneObject = undefined
-    }
-
-    // Set the position of the clone object to the original object
-    if (this.cloneObject) {
-      this.cloneObject?.set({
-        left: this.originalObject?.left,
-        top: this.originalObject?.top,
-      })
+    // Check if the alt is pressed and clone object right away
+    if (e.altKey && !this.cloneObject && this.originalObject) {
+      this.cloneObject = await this.originalObject.clone()
+      this.handler.addObject(this.cloneObject)
     }
   }
 
   /**
-   * Remove the clone object when the object is modified
+   * Clean up state when the mouse is up
    */
-  private onObjectModified() {
-    if (this.cloneObject) {
-      this.cloneObject = undefined
-      this.handler.canvas.renderAll()
-    }
+  private onMouseUp() {
+    this.cloneObject = undefined
+    this.originalObject = undefined
   }
 }
 

@@ -27,6 +27,7 @@ import ExportHandler from "./ExportHandler"
 import { Canvas, CanvasOptions, FabricObject } from "fabric"
 import { Rect } from "fabric"
 import AxisLockHandler from "./AxisLockHandler"
+import { check } from "../utils/check"
 
 export type HandlerStore = {
   zoom: number
@@ -1166,6 +1167,30 @@ class Handler implements HandlerOptions {
    */
   public getObjects() {
     return this.canvas.getObjects().filter(({ id }) => id !== this.workspaceOptions.id)
+  }
+
+  /**
+   * Add object or selection to canvas
+   * @param object - Fabric object to add
+   */
+  public addObject(object: FabricObject) {
+    const objects = check.isActiveSelection(object) ? object.getObjects() : [object]
+
+    for (const obj of objects) {
+      this.canvas.add(obj)
+    }
+  }
+
+  /**
+   * Remove object or selection from canvas
+   * @param object - Fabric object to remove
+   */
+  public removeObject(object: FabricObject) {
+    const objects = check.isActiveSelection(object) ? object.getObjects() : [object]
+
+    for (const obj of objects) {
+      this.canvas.remove(obj)
+    }
   }
 
   /**
