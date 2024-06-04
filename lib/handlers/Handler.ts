@@ -869,15 +869,27 @@ class Handler implements HandlerOptions {
    * Add object or selection to canvas
    * @param object - Fabric object to add
    */
-  public addObject(
+  public async addObject(
     object: FabricObject,
     options?: { skipActive?: boolean; skipHistory?: boolean }
   ) {
-    const objects = check.isActiveSelection(object) ? object.getObjects() : [object]
+    // TODO: This in temporary solution until I find a better way to handle this
+    // If object is a selection, the objects inside the selection get incorrect position
+    if (check.isActiveSelection(object)) {
+      for (const obj of object.getObjects()) {
+        const clone = await obj.clone()
+        const { left, top } = clone.getBoundingRect()
 
-    for (const obj of objects) {
-      obj.set({ id: generateId() })
-      this.canvas.add(obj)
+        clone.set({
+          id: generateId(),
+          left: left + object.left + object.width / 2,
+          top: top + object.top + object.height / 2,
+        })
+        this.canvas.add(clone)
+      }
+    } else {
+      object.set({ id: generateId() })
+      this.canvas.add(object)
     }
 
     // Update active object and render canvas

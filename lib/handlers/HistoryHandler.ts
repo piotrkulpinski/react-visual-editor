@@ -39,6 +39,8 @@ class HistoryHandler {
     const rawJSON = this.handler.canvas.toDatalessJSON(this.propertiesToInclude)
     const objects = this.handler.getObjects(rawJSON.objects)
 
+    console.log(JSON.stringify(objects.map(({ left, top }) => ({ left, top }))))
+
     this.state = JSON.stringify(objects)
   }
 
