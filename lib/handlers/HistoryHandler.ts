@@ -1,12 +1,49 @@
 import { throttle } from "radash"
 import { FabricObject, util } from "fabric"
 import { Handler } from "./Handler"
+import { create } from "zustand"
+
+export type HistoryState = {
+  history: string[]
+  currentIndex: number
+  canUndo: boolean
+  canRedo: boolean
+  setHistory: (history: string[]) => void
+  incrementCurrentIndex: () => void
+  decrementCurrentIndex: () => void
+}
+
+export const historyStore = create<HistoryState>((set) => ({
+  history: [],
+  currentIndex: -1,
+  canUndo: false,
+  canRedo: false,
+  setHistory: (history) => set({ history }),
+  incrementCurrentIndex: () =>
+    set(({ history, currentIndex }) => {
+      const newIndex = currentIndex + 1
+
+      return {
+        currentIndex: newIndex,
+        canUndo: newIndex > 0,
+        canRedo: newIndex < history.length - 1,
+      }
+    }),
+  decrementCurrentIndex: () =>
+    set(({ history, currentIndex }) => {
+      const newIndex = currentIndex - 1
+
+      return {
+        currentIndex: newIndex,
+        canUndo: newIndex > 0,
+        canRedo: newIndex < history.length - 1,
+      }
+    }),
+}))
 
 export class HistoryHandler {
   handler: Handler
 
-  private history: string[] = []
-  private currentIndex: number = -1
   private isReplaying: boolean = false
   private readonly maxHistorySize: number = 100
   private readonly propertiesToInclude: (keyof FabricObject)[] = ["id"]
@@ -29,13 +66,14 @@ export class HistoryHandler {
   public saveState = () => {
     if (this.isReplaying) return
 
+    const state = historyStore.getState()
     const currentState = this.getCurrentState()
-    const previousState = this.history[this.currentIndex - 1]
+    const previousState = state.history[state.currentIndex - 1]
 
     // Check if the current state is different from the previous state
-    if (this.currentIndex === 0 || currentState !== previousState) {
-      this.history = [...this.history.slice(0, this.currentIndex + 1), currentState]
-      this.currentIndex++
+    if (state.currentIndex === 0 || currentState !== previousState) {
+      state.setHistory([...state.history.slice(0, state.currentIndex + 1), currentState])
+      state.incrementCurrentIndex()
     }
 
     this.limitHistorySize()
@@ -45,40 +83,28 @@ export class HistoryHandler {
    * Undo last action
    */
   public undo = throttle({ interval: 50 }, () => {
-    if (this.currentIndex <= 0) return
+    const state = historyStore.getState()
+    if (state.currentIndex <= 0) return
 
-    this.currentIndex--
-    this.replayState(this.history[this.currentIndex])
+    state.decrementCurrentIndex()
+    this.replayState(state.history[state.currentIndex - 1])
   })
 
   /**
    * Redo last action
    */
   public redo = throttle({ interval: 50 }, () => {
-    if (this.currentIndex >= this.history.length - 1) return
+    const state = historyStore.getState()
+    if (state.currentIndex >= state.history.length - 1) return
 
-    this.currentIndex++
-    this.replayState(this.history[this.currentIndex])
+    state.incrementCurrentIndex()
+    this.replayState(state.history[state.currentIndex + 1])
   })
-
-  /**
-   * Check if undo is possible
-   */
-  public get canUndo(): boolean {
-    return this.currentIndex > 0
-  }
-
-  /**
-   * Check if redo is possible
-   */
-  public get canRedo(): boolean {
-    return this.currentIndex < this.history.length - 1
-  }
 
   /**
    * Get the current state of the canvas as a JSON string
    */
-  private getCurrentState(): string {
+  private getCurrentState() {
     const rawJSON = this.handler.canvas.toDatalessJSON(this.propertiesToInclude)
     const objects = this.handler.getObjects(rawJSON.objects)
     return JSON.stringify(objects)
@@ -87,10 +113,14 @@ export class HistoryHandler {
   /**
    * Limit the size of the history stack to the maximum history size
    */
-  private limitHistorySize(): void {
-    if (this.history.length > this.maxHistorySize) {
-      this.history = this.history.slice(-this.maxHistorySize)
-      this.currentIndex = this.history.length - 1
+  private limitHistorySize() {
+    const state = historyStore.getState()
+
+    if (state.history.length > this.maxHistorySize) {
+      historyStore.setState((state) => ({
+        history: state.history.slice(-this.maxHistorySize),
+        currentIndex: state.history.length - 1,
+      }))
     }
   }
 

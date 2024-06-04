@@ -1,5 +1,5 @@
 import { HTMLAttributes } from "react"
-import Handler from "../../lib/handlers/Handler"
+import { Handler } from "../../lib/handlers/Handler"
 import { Button } from "@curiousleaf/design"
 
 type SidebarLeftProps = HTMLAttributes<HTMLDivElement> & {

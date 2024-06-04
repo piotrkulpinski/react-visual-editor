@@ -2,7 +2,7 @@ import { Button, ButtonGroup, Dropdown, MenuItem, Tooltip } from "@curiousleaf/d
 import { IconMaximize, IconMinus, IconPlus, IconZoomScan } from "@tabler/icons-react"
 import type { HTMLAttributes } from "react"
 import { useStore } from "zustand"
-import type Handler from "../../lib/handlers/Handler"
+import { Handler } from "../../lib/handlers/Handler"
 
 type CanvasZoomNavProps = HTMLAttributes<HTMLDivElement> & {
   handler: Handler

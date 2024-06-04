@@ -1,23 +1,27 @@
 import { Button, ButtonGroup, Tooltip, cx } from "@curiousleaf/design"
 import {
-  IconArrowBackUp,
-  IconArrowForwardUp,
-  IconCopy,
-  IconDownload,
-  IconLetterT,
-  IconLine,
-  IconRuler,
-  IconShape,
+    IconArrowBackUp,
+    IconArrowForwardUp,
+    IconCopy,
+    IconDownload,
+    IconLetterT,
+    IconLine,
+    IconRuler,
+    IconShape,
 } from "@tabler/icons-react"
 import type { HTMLAttributes } from "react"
 import { CanvasButton } from "./CanvasButton"
-import Handler from "../../lib/handlers/Handler"
+import { Handler } from "../../lib/handlers/Handler"
+import { historyStore } from "../../lib"
+import { useStore } from "zustand"
 
 type CanvasTopNavProps = HTMLAttributes<HTMLDivElement> & {
   handler: Handler
 }
 
 export const CanvasTopNav = ({ handler, className, ...props }: CanvasTopNavProps) => {
+  const { canUndo, canRedo } = useStore(historyStore)
+
   return (
     <div className={cx("size-full flex items-center", className)} {...props}>
       <div className="flex items-center divide-x -mx-3">
@@ -38,11 +42,13 @@ export const CanvasTopNav = ({ handler, className, ...props }: CanvasTopNavProps
           <CanvasButton
             tooltip="Undo"
             prefix={<IconArrowBackUp />}
+            disabled={!canUndo}
             onClick={() => handler.historyHandler.undo()}
           />
           <CanvasButton
             tooltip="Redo"
             prefix={<IconArrowForwardUp />}
+            disabled={!canRedo}
             onClick={() => handler.historyHandler.redo()}
           />
         </div>

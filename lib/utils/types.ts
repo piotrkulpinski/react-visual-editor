@@ -4,7 +4,7 @@ import type {
   CanvasOptions,
   FabricObject,
 } from "fabric"
-import type Handler from "../handlers/Handler"
+import { type Handler } from "../handlers/Handler"
 
 export type HandlerCallback = {
   /**

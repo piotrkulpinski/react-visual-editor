@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Canvas } from "../lib/components/Canvas"
-import type Handler from "../lib/handlers/Handler"
+import { Handler } from "../lib/handlers/Handler"
 import { CanvasZoomNav } from "./components/CanvasZoomNav"
 import { CanvasInteractionNav } from "./components/CanvasInteractionNav"
 import { CanvasTopNav } from "./components/CanvasTopNav"

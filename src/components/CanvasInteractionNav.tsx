@@ -2,7 +2,7 @@ import { ButtonGroup } from "@curiousleaf/design"
 import { IconHandStop, IconPointer } from "@tabler/icons-react"
 import type { HTMLAttributes } from "react"
 import { useStore } from "zustand"
-import type Handler from "../../lib/handlers/Handler"
+import { Handler } from "../../lib/handlers/Handler"
 import { InteractionMode } from "../../lib/utils/types"
 import { CanvasButton } from "./CanvasButton"
 

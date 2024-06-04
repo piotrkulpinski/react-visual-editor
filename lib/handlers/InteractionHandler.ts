@@ -35,7 +35,7 @@ export class InteractionHandler {
     }
 
     if (e instanceof WheelEvent) {
-      delta = new Point(e.deltaX, e.deltaY)
+      delta = new Point(-e.deltaX, -e.deltaY)
     }
 
     if (delta) {
