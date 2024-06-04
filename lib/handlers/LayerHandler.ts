@@ -83,7 +83,7 @@ class LayerHandler {
     this.handler.canvas.renderAll()
 
     // Save history action
-    this.handler.historyHandler.save()
+    this.handler.historyHandler.saveState()
   }
 }
 

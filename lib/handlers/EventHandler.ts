@@ -66,7 +66,7 @@ class EventHandler {
    * Modified event object
    */
   private onObjectModified() {
-    this.handler.historyHandler.save()
+    this.handler.historyHandler.saveState()
   }
 
   /**

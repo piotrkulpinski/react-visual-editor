@@ -897,7 +897,7 @@ class Handler implements HandlerOptions {
     this.canvas.requestRenderAll()
 
     // Save history action
-    !options?.skipHistory && this.historyHandler.save()
+    !options?.skipHistory && this.historyHandler.saveState()
   }
 
   /**
@@ -919,7 +919,7 @@ class Handler implements HandlerOptions {
     this.canvas.requestRenderAll()
 
     // Save history action
-    !options?.skipHistory && this.historyHandler.save()
+    !options?.skipHistory && this.historyHandler.saveState()
   }
 
   /**

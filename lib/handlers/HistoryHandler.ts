@@ -5,11 +5,11 @@ import { FabricObject, util } from "fabric"
 class HistoryHandler {
   handler: Handler
 
-  undoStack: string[] = []
-  redoStack: string[] = []
-  state: string = "[]"
-  isActive: boolean = false
-  propertiesToInclude: string[] = ["id"]
+  private historyStack: string[] = []
+  private currentStateIndex: number = -1
+  private isReplaying: boolean = false
+  private readonly maxHistorySize: number = 100
+  private readonly propertiesToInclude: (keyof FabricObject)[] = ["id"]
 
   constructor(handler: Handler) {
     this.handler = handler
@@ -18,64 +18,91 @@ class HistoryHandler {
       { key: "cmd+z", handler: () => this.undo() },
       { key: "cmd+shift+z", handler: () => this.redo() }
     )
+
+    // Save the initial empty state
+    this.saveState()
   }
 
   /**
-   * Save action
+   * Save current state as history stack
    */
-  public save = (replaceLast = false) => {
-    if (this.isActive) return
+  public saveState = () => {
+    if (this.isReplaying) return
 
-    if (this.state) {
-      this.redoStack = []
+    const currentState = this.getCurrentState()
+    const previousState = this.historyStack[this.currentStateIndex - 1]
 
-      if (replaceLast) {
-        this.undoStack.splice(this.undoStack.length - 1, 1, this.state)
-      } else {
-        this.undoStack.push(this.state)
-      }
+    // Check if the current state is different from the previous state
+    if (this.currentStateIndex === 0 || currentState !== previousState) {
+      this.historyStack = [...this.historyStack.slice(0, this.currentStateIndex + 1), currentState]
+      this.currentStateIndex++
     }
 
-    const rawJSON = this.handler.canvas.toDatalessJSON(this.propertiesToInclude)
-    const objects = this.handler.getObjects(rawJSON.objects)
-
-    console.log(JSON.stringify(objects.map(({ left, top }) => ({ left, top }))))
-
-    this.state = JSON.stringify(objects)
+    this.limitHistorySize()
   }
 
   /**
    * Undo last action
    */
   public undo = throttle({ interval: 50 }, () => {
-    if (!this.undoStack.length) return
+    if (this.currentStateIndex <= 0) return
 
-    const undo = this.undoStack.pop()!
-    this.redoStack.push(this.state)
-    this.replay(undo)
+    this.currentStateIndex--
+    this.replayState(this.historyStack[this.currentStateIndex])
   })
 
   /**
    * Redo last action
    */
   public redo = throttle({ interval: 50 }, () => {
-    if (!this.redoStack.length) return
+    if (this.currentStateIndex >= this.historyStack.length - 1) return
 
-    const redo = this.redoStack.pop()!
-    this.undoStack.push(this.state)
-    this.replay(redo)
+    this.currentStateIndex++
+    this.replayState(this.historyStack[this.currentStateIndex])
   })
+
+  /**
+   * Check if undo is possible
+   */
+  public get canUndo(): boolean {
+    return this.currentStateIndex > 0
+  }
+
+  /**
+   * Check if redo is possible
+   */
+  public get canRedo(): boolean {
+    return this.currentStateIndex < this.historyStack.length - 1
+  }
+
+  /**
+   * Get the current state of the canvas as a JSON string
+   */
+  private getCurrentState(): string {
+    const rawJSON = this.handler.canvas.toDatalessJSON(this.propertiesToInclude)
+    const objects = this.handler.getObjects(rawJSON.objects)
+    return JSON.stringify(objects)
+  }
+
+  /**
+   * Limit the size of the history stack to the maximum history size
+   */
+  private limitHistorySize(): void {
+    if (this.historyStack.length > this.maxHistorySize) {
+      this.historyStack = this.historyStack.slice(-this.maxHistorySize)
+      this.currentStateIndex = this.historyStack.length - 1
+    }
+  }
 
   /**
    * Replay action from state
    *
    * @param state - State to replay
    */
-  private replay = (state: string) => {
+  private replayState = (state: string) => {
     const objects = JSON.parse(state) as FabricObject[]
 
-    this.state = state
-    this.isActive = true
+    this.isReplaying = true
     this.handler.canvas.renderOnAddRemove = false
     this.handler.clear()
 
@@ -87,7 +114,7 @@ class HistoryHandler {
 
       this.handler.canvas.renderOnAddRemove = true
       this.handler.canvas.requestRenderAll()
-      this.isActive = false
+      this.isReplaying = false
     })
   }
 }
