@@ -29,6 +29,7 @@ import { Canvas, CanvasOptions, FabricObject } from "fabric"
 import { Rect } from "fabric"
 import AxisLockHandler from "./AxisLockHandler"
 import { check } from "../utils/check"
+import { generateId } from "../utils/helpers"
 
 export type HandlerStore = {
   zoom: number
@@ -875,6 +876,7 @@ class Handler implements HandlerOptions {
     const objects = check.isActiveSelection(object) ? object.getObjects() : [object]
 
     for (const obj of objects) {
+      obj.set({ id: generateId() })
       this.canvas.add(obj)
     }
 
