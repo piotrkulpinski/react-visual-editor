@@ -8,8 +8,8 @@ import {
   useImperativeHandle,
   useState,
 } from "react"
-import { v4 as uuid } from "uuid"
 import Handler from "../handlers/Handler"
+import { generateId } from "../utils/helpers"
 
 type CanvasProps = HTMLAttributes<HTMLDivElement> & {
   options?: Partial<CanvasOptions>
@@ -39,7 +39,7 @@ export const Canvas = forwardRef<Handler, CanvasProps>(({ options, ...props }, r
     })
 
     const handlerInstance = new Handler({
-      id: uuid(),
+      id: generateId(),
       canvas,
       canvasOptions,
       container: containerRef.current as HTMLDivElement,
