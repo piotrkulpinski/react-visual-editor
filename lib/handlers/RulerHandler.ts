@@ -1,3 +1,4 @@
+import { util } from "fabric"
 import type { HighlightRect } from "../utils/types"
 import type Handler from "./Handler"
 
@@ -23,7 +24,6 @@ class RulerHandler {
    * Caching event handlers
    */
   private eventHandler = {
-    // calculateActiveObjects: this.calculateActiveObjects.bind(this),
     // onMouseDown: this.onMouseDown.bind(this),
     // onMouseMove: throttle({ interval: 15 }, this.onMouseMove.bind(this)),
     // onMouseUp: this.onMouseUp.bind(this),
@@ -40,41 +40,31 @@ class RulerHandler {
   constructor(handler: Handler) {
     this.handler = handler
 
-    // Bind events
-    // TODO: Unbind events on destroy
-    // this.handler.canvas.on("after:render", this.eventHandler.calculateActiveObjects)
-    this.handler.canvas.on("after:render", this.eventHandler.onRender)
-
     // this.lastAttr = {
     //   hoveredRuler: false,
     //   cursor: this.handler.canvas.defaultCursor,
     //   selection: this.handler.canvas.selection,
     // }
 
-    // this.handler.canvas.on({
-    //   "mouse:move": this.eventHandler.onMouseMove,
-    //   "mouse:down": this.eventHandler.onMouseDown,
-    //   "mouse:up": this.eventHandler.onMouseUp,
-    //   "guideline:moving": this.eventHandler.onGuideLineMoving,
-    //   "guideline:mouseup": this.eventHandler.onGuideLineMouseup,
-    // })
-
-    // this.canvasEvents = {
-    //   'after:render': this.render.bind(this),
-    //   'mouse:move': this.mouseMove.bind(this),
-    //   'mouse:down': this.mouseDown.bind(this),
-    //   'mouse:up': this.mouseUp.bind(this),
-    // }
+    // Bind events
+    // TODO: Unbind events on destroy
+    this.handler.canvas.on({
+      "after:render": this.eventHandler.onRender,
+      // "mouse:move": this.eventHandler.onMouseMove,
+      // "mouse:down": this.eventHandler.onMouseDown,
+      // "mouse:up": this.eventHandler.onMouseUp,
+      // "guideline:moving": this.eventHandler.onGuideLineMoving,
+      // "guideline:mouseup": this.eventHandler.onGuideLineMouseup,
+    })
   }
 
   /**
    * Render the vertical and horizontal rulers
    */
   private onRender() {
-    const { ruleSize, backgroundColor } = this.handler.rulerOptions
-
-    const vpt = this.handler.canvas.viewportTransform
-    if (!vpt) return
+    const { rulerOptions, canvas } = this.handler
+    const { ruleSize, backgroundColor } = rulerOptions
+    const { scaleX, scaleY, translateX, translateY } = util.qrDecompose(canvas.viewportTransform)
 
     // Calculate active objects
     this.calculateActiveObjects()
@@ -83,14 +73,14 @@ class RulerHandler {
     this.draw({
       isHorizontal: true,
       rulerLength: this.getSize().width,
-      startCalibration: -(vpt[4] && vpt[0] ? vpt[4] / vpt[0] : 0),
+      startCalibration: -(translateX && scaleX ? translateX / scaleX : 0),
     })
 
     // Vertical ruler
     this.draw({
       isHorizontal: false,
       rulerLength: this.getSize().height,
-      startCalibration: -(vpt[5] && vpt[3] ? vpt[5] / vpt[3] : 0),
+      startCalibration: -(translateY && scaleY ? translateY / scaleY : 0),
     })
 
     // A mask in the top-left corner

@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import hotkeys from "hotkeys-js"
 import { debounce } from "radash"
 import { type StoreApi, createStore } from "zustand"
 import {
-    type HandlerOptions,
-    type HotkeyHandler,
-    InteractionMode,
-    type WorkspaceOptions,
-    type ZoomOptions,
-    RulerOptions,
+  type HandlerOptions,
+  type HotkeyHandler,
+  InteractionMode,
+  type WorkspaceOptions,
+  type ZoomOptions,
+  RulerOptions,
 } from "../utils/types"
 import EventHandler from "./EventHandler"
 import InteractionHandler from "./InteractionHandler"
@@ -857,23 +858,29 @@ class Handler implements HandlerOptions {
   /**
    * Return all objects except the workspace
    */
-  public getObjects() {
-    return this.canvas.getObjects().filter(({ id }) => id !== this.workspaceOptions.id)
+  public getObjects(objs?: FabricObject[]) {
+    const objects = objs || this.canvas.getObjects()
+
+    return objects.filter(({ id }) => id !== this.workspaceOptions.id)
   }
 
   /**
    * Add object or selection to canvas
    * @param object - Fabric object to add
    */
-  public addObject(object: FabricObject, options?: { skipHistory?: boolean; setActive?: boolean }) {
+  public addObject(
+    object: FabricObject,
+    options?: { skipActive?: boolean; skipHistory?: boolean }
+  ) {
     const objects = check.isActiveSelection(object) ? object.getObjects() : [object]
 
     for (const obj of objects) {
       this.canvas.add(obj)
     }
 
-    // Set active object
-    options?.setActive && this.canvas.setActiveObject(object)
+    // Update active object and render canvas
+    !options?.skipActive && this.canvas.setActiveObject(object)
+    this.canvas.requestRenderAll()
 
     // Save history action
     !options?.skipHistory && this.historyHandler.save()
@@ -883,12 +890,19 @@ class Handler implements HandlerOptions {
    * Remove object or selection from canvas
    * @param object - Fabric object to remove
    */
-  public removeObject(object: FabricObject, options?: { skipHistory?: boolean }) {
+  public removeObject(
+    object: FabricObject,
+    options?: { skipActive?: boolean; skipHistory?: boolean }
+  ) {
     const objects = check.isActiveSelection(object) ? object.getObjects() : [object]
 
     for (const obj of objects) {
       this.canvas.remove(obj)
     }
+
+    // Update active object and render canvas
+    !options?.skipActive && this.canvas.discardActiveObject()
+    this.canvas.requestRenderAll()
 
     // Save history action
     !options?.skipHistory && this.historyHandler.save()
@@ -904,7 +918,7 @@ class Handler implements HandlerOptions {
 
     this.getObjects().map((obj) => this.canvas.remove(obj))
     this.canvas.discardActiveObject()
-    this.canvas.renderAll()
+    this.canvas.requestRenderAll()
   }
 
   // /**

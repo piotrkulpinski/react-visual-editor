@@ -81,6 +81,9 @@ class LayerHandler {
 
     this.handler.canvas.sendObjectToBack(this.handler.workspace)
     this.handler.canvas.renderAll()
+
+    // Save history action
+    this.handler.historyHandler.save()
   }
 }
 

@@ -9,6 +9,7 @@ class HistoryHandler {
   redoStack: string[] = []
   state: string = "[]"
   isActive: boolean = false
+  propertiesToInclude: string[] = ["id"]
 
   constructor(handler: Handler) {
     this.handler = handler
@@ -22,21 +23,29 @@ class HistoryHandler {
   /**
    * Save action
    */
-  public save = () => {
+  public save = (replaceLast = false) => {
     if (this.isActive) return
 
     if (this.state) {
       this.redoStack = []
-      this.undoStack.push(this.state)
+
+      if (replaceLast) {
+        this.undoStack.splice(this.undoStack.length - 1, 1, this.state)
+      } else {
+        this.undoStack.push(this.state)
+      }
     }
 
-    this.state = JSON.stringify(this.handler.getObjects())
+    const rawJSON = this.handler.canvas.toDatalessJSON(this.propertiesToInclude)
+    const objects = this.handler.getObjects(rawJSON.objects)
+
+    this.state = JSON.stringify(objects)
   }
 
   /**
    * Undo last action
    */
-  public undo = throttle({ interval: 100 }, () => {
+  public undo = throttle({ interval: 50 }, () => {
     if (!this.undoStack.length) return
 
     const undo = this.undoStack.pop()!
@@ -47,7 +56,7 @@ class HistoryHandler {
   /**
    * Redo last action
    */
-  public redo = throttle({ interval: 100 }, () => {
+  public redo = throttle({ interval: 50 }, () => {
     if (!this.redoStack.length) return
 
     const redo = this.redoStack.pop()!

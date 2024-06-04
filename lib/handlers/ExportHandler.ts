@@ -1,4 +1,4 @@
-import { ImageFormat } from "fabric"
+import { ImageFormat, util } from "fabric"
 import { saveAs } from "file-saver"
 import type Handler from "./Handler"
 
@@ -82,7 +82,7 @@ class ExportHandler {
 
     const zoom = canvas.getZoom()
     const activeObject = canvas.getActiveObject()
-    const viewportTransform = canvas.viewportTransform
+    const { translateX, translateY } = util.qrDecompose(canvas.viewportTransform)
 
     // Discard active object before exporting
     activeObject && canvas.discardActiveObject()
@@ -93,8 +93,8 @@ class ExportHandler {
       multiplier: multiplier / zoom,
       width: width * zoom,
       height: height * zoom,
-      left: left * zoom + viewportTransform[4],
-      top: top * zoom + viewportTransform[5],
+      left: left * zoom + translateX,
+      top: top * zoom + translateY,
     })
 
     // Restore canvas

@@ -35,8 +35,16 @@ export const CanvasTopNav = ({ handler, className, ...props }: CanvasTopNavProps
         </div>
 
         <div className="flex items-center gap-0.5 px-3 h-4">
-          <CanvasButton tooltip="Undo" prefix={<IconArrowBackUp />} />
-          <CanvasButton tooltip="Redo" prefix={<IconArrowForwardUp />} />
+          <CanvasButton
+            tooltip="Undo"
+            prefix={<IconArrowBackUp />}
+            onClick={() => handler.historyHandler.undo()}
+          />
+          <CanvasButton
+            tooltip="Redo"
+            prefix={<IconArrowForwardUp />}
+            onClick={() => handler.historyHandler.redo()}
+          />
         </div>
 
         <div className="flex items-center gap-0.5 px-3 h-4">

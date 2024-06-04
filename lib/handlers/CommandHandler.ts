@@ -9,6 +9,11 @@ class CommandHandler {
    */
   clipboard: FabricObject | undefined = undefined
 
+  /**
+   * A flag to check if the object is cut
+   */
+  isCut: boolean = false
+
   constructor(handler: Handler) {
     this.handler = handler
 
@@ -30,6 +35,8 @@ class CommandHandler {
   public async cut() {
     await this.copy()
     this.delete()
+
+    this.isCut = true
   }
 
   /**
@@ -54,7 +61,7 @@ class CommandHandler {
   public async paste() {
     if (!this.clipboard) return
 
-    await this.cloneObject(this.clipboard, true)
+    await this.cloneObject(this.clipboard)
   }
 
   /**
@@ -64,7 +71,7 @@ class CommandHandler {
     const activeObject = this.handler.canvas.getActiveObject()
 
     if (activeObject) {
-      await this.cloneObject(activeObject, true)
+      await this.cloneObject(activeObject)
     }
   }
 
@@ -76,8 +83,6 @@ class CommandHandler {
 
     if (activeObject) {
       this.handler.removeObject(activeObject)
-      this.handler.canvas.discardActiveObject()
-      this.handler.canvas.requestRenderAll()
     }
   }
 
@@ -86,10 +91,13 @@ class CommandHandler {
    */
   public selectAll() {
     const objects = this.handler.getObjects()
-    const activeObject = new ActiveSelection(objects)
 
-    this.handler.canvas.setActiveObject(activeObject)
-    this.handler.canvas.requestRenderAll()
+    if (objects.length) {
+      const activeObject = new ActiveSelection(objects)
+
+      this.handler.canvas.setActiveObject(activeObject)
+      this.handler.canvas.requestRenderAll()
+    }
   }
 
   /**
@@ -97,7 +105,7 @@ class CommandHandler {
    */
   public discard() {
     this.handler.canvas.discardActiveObject()
-    this.handler.canvas.renderAll()
+    this.handler.canvas.requestRenderAll()
   }
 
   /**
@@ -114,7 +122,8 @@ class CommandHandler {
     activeObject.set(direction, (activeObject[direction] ?? 0) + increment)
     activeObject.setCoords()
 
-    this.handler.canvas.renderAll()
+    this.handler.canvas.requestRenderAll()
+    this.handler.canvas.fire("object:modified", { target: activeObject })
     this.handler.onModified?.(activeObject)
   }
 
@@ -145,27 +154,32 @@ class CommandHandler {
   /**
    * Helper method to clone an object
    * @param object - The object to clone
-   * @param adjustPosition - If true, adjusts the position of the cloned object
    */
-  private async cloneObject(object: FabricObject, adjustPosition = false) {
+  private async cloneObject(object: FabricObject) {
     const clone = await object.clone()
-    const adjustSize = adjustPosition ? 10 : 0
+    const adjustSize = this.isCut ? 0 : 10
 
+    // Adjust the position of the object in the clipboard
+    this.clipboard?.set({
+      left: this.clipboard.left + adjustSize,
+      top: this.clipboard.top + adjustSize,
+    })
+
+    // Reset the clipboard if the object is cut
+    if (this.isCut) {
+      this.isCut = false
+      this.clipboard = undefined
+    }
+
+    // Adjust the position of the clone
     clone.set({
       left: clone.left + adjustSize,
       top: clone.top + adjustSize,
+      evented: true,
     })
 
-    if (this.clipboard) {
-      this.clipboard.set({
-        left: this.clipboard.left + adjustSize,
-        top: this.clipboard.top + adjustSize,
-      })
-    }
-
+    // Add the clone to the canvas
     this.handler.addObject(clone)
-    this.handler.canvas.setActiveObject(clone)
-    this.handler.canvas.requestRenderAll()
   }
 }
 
