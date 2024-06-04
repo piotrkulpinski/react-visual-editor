@@ -1,4 +1,4 @@
-import { CanvasEvents, Point, TPointerEvent } from "fabric"
+import { CanvasEvents, FabricObject, Point, TPointerEvent } from "fabric"
 import { InteractionMode } from "../utils/types"
 import type Handler from "./Handler"
 
@@ -61,23 +61,7 @@ class InteractionHandler {
    * Selection created event
    */
   private onSelectionCreated({ selected }: CanvasEvents["selection:created"]) {
-    const mode = this.handler.store.getState().interactionMode
-
-    for (const object of selected) {
-      switch (mode) {
-        case InteractionMode.SELECT:
-          object.hoverCursor = "move"
-          object.selectable = true
-          break
-        case InteractionMode.PAN:
-          object.selectable = false
-          break
-      }
-    }
-
-    if (mode === InteractionMode.PAN) {
-      this.handler.canvas.discardActiveObject()
-    }
+    this.updateObjectSelection(selected)
   }
 
   /**
@@ -101,26 +85,40 @@ class InteractionHandler {
         break
       case InteractionMode.PAN:
         this.defaultSelection = this.handler.canvas.selection
-        this.handler.canvas.discardActiveObject()
         this.handler.canvas.setCursor("grab")
         this.handler.canvas.selection = false
         break
     }
 
-    for (const obj of this.handler.getObjects()) {
+    this.updateObjectSelection(this.handler.getObjects())
+    this.handler.onInteraction?.(mode)
+  }
+
+  /**
+   * Update object selection
+   *
+   * @param objects - Fabric objects to update
+   */
+  private updateObjectSelection(objects: FabricObject[]) {
+    const mode = this.handler.store.getState().interactionMode
+
+    for (const object of objects) {
       switch (mode) {
         case InteractionMode.SELECT:
-          obj.hoverCursor = "move"
-          obj.selectable = true
+          object.hoverCursor = "move"
+          object.selectable = this.defaultSelection
           break
         case InteractionMode.PAN:
-          obj.selectable = false
+          object.selectable = false
           break
       }
     }
 
-    this.handler.canvas.renderAll()
-    this.handler.onInteraction?.(mode)
+    // Deselect all objects when panning
+    mode === InteractionMode.PAN && this.handler.canvas.discardActiveObject()
+
+    // Render all objects
+    this.handler.canvas.requestRenderAll()
   }
 }
 
