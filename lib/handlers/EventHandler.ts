@@ -111,18 +111,18 @@ class EventHandler {
   /**
    * Mouse move event on canvas
    */
-  private onMouseMove(e: CanvasEvents["mouse:move"]) {
+  private onMouseMove({ e }: CanvasEvents["mouse:move"]) {
     if (this.handler.store.getState().interactionMode === InteractionMode.PAN) {
       this.handler.canvas.setCursor(this.isPanning ? "grabbing" : "grab")
 
       if (this.isPanning) {
-        this.handler.interactionHandler.moving(e)
+        this.handler.interactionHandler.panCanvas(e)
       }
     }
 
     if (this.isMiddleClicked) {
       this.handler.canvas.setCursor("grabbing")
-      this.handler.interactionHandler.moving(e)
+      this.handler.interactionHandler.panCanvas(e)
     }
   }
 

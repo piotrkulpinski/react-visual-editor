@@ -1,4 +1,4 @@
-import { CanvasEvents, Point } from "fabric"
+import { CanvasEvents, Point, TPointerEvent } from "fabric"
 import { InteractionMode } from "../utils/types"
 import type Handler from "./Handler"
 
@@ -21,6 +21,27 @@ class InteractionHandler {
 
     // Register canvas events
     this.handler.canvas.on("mouse:wheel", this.onMouseWheel.bind(this))
+    this.handler.canvas.on("selection:created", this.onSelectionCreated.bind(this))
+  }
+
+  /**
+   * Pan the canvas when the mouse is moving
+   */
+  public panCanvas(e: TPointerEvent | WheelEvent) {
+    let delta: Point | undefined = undefined
+
+    if (e instanceof MouseEvent) {
+      delta = new Point(e.movementX, e.movementY)
+    }
+
+    if (e instanceof WheelEvent) {
+      delta = new Point(e.deltaX, e.deltaY)
+    }
+
+    if (delta) {
+      this.handler.canvas.relativePan(delta)
+      this.handler.canvas.requestRenderAll()
+    }
   }
 
   /**
@@ -32,9 +53,30 @@ class InteractionHandler {
 
     // ctrlKey is set when pinch-zoom is detected
     if (!e.metaKey && !e.ctrlKey) {
-      const delta = new Point(-e.deltaX, -e.deltaY)
-      this.handler.canvas.relativePan(delta)
-      this.handler.canvas.requestRenderAll()
+      this.panCanvas(e)
+    }
+  }
+
+  /**
+   * Selection created event
+   */
+  private onSelectionCreated({ selected }: CanvasEvents["selection:created"]) {
+    const mode = this.handler.store.getState().interactionMode
+
+    for (const object of selected) {
+      switch (mode) {
+        case InteractionMode.SELECT:
+          object.hoverCursor = "move"
+          object.selectable = true
+          break
+        case InteractionMode.PAN:
+          object.selectable = false
+          break
+      }
+    }
+
+    if (mode === InteractionMode.PAN) {
+      this.handler.canvas.discardActiveObject()
     }
   }
 
@@ -79,17 +121,6 @@ class InteractionHandler {
 
     this.handler.canvas.renderAll()
     this.handler.onInteraction?.(mode)
-  }
-
-  /**
-   * Moving objects in pan mode
-   */
-  public moving({ e }: CanvasEvents["mouse:move"]) {
-    if (e instanceof MouseEvent) {
-      const delta = new Point(e.movementX, e.movementY)
-      this.handler.canvas.relativePan(delta)
-      this.handler.canvas.requestRenderAll()
-    }
   }
 }
 
