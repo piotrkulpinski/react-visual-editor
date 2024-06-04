@@ -22,7 +22,7 @@ export class GuideLine extends Line {
     const isHorizontal = options.axis === "horizontal"
     options[isHorizontal ? "lockMovementX" : "lockMovementY"] = true
     super(points as [number, number, number, number], options)
-    this.axis = options.axis
+    this.axis = options.axis!
     this.initEvent()
     this.hoverCursor = isHorizontal ? "ns-resize" : "ew-resize"
   }
@@ -36,24 +36,24 @@ export class GuideLine extends Line {
       }
     })
 
-    this.on("moving", (e) => {
-      this.canvas?.fire("guideline:moving", {
-        target: this,
-        e: e.e,
-        pointer: e.pointer,
-      })
-    })
+    // this.on("moving", (e) => {
+    //   this.canvas?.fire("guideline:moving", {
+    //     target: this,
+    //     e: e.e,
+    //     pointer: e.pointer,
+    //   })
+    // })
 
-    this.on("mouseup", (e) => {
-      this.moveCursor = this.isHorizontal() ? "ns-resize" : "ew-resize"
-      // this.selectable = false
-      this.canvas?.fire("guideline:mouseup", {
-        target: this,
-        e: e.e,
-        pointer: e.pointer,
-      })
-      this.canvas?.fire("object:modified")
-    })
+    // this.on("mouseup", (e) => {
+    //   this.moveCursor = this.isHorizontal() ? "ns-resize" : "ew-resize"
+    //   // this.selectable = false
+    //   this.canvas?.fire("guideline:mouseup", {
+    //     target: this,
+    //     e: e.e,
+    //     pointer: e.pointer,
+    //   })
+    //   this.canvas?.fire("object:modified")
+    // })
 
     this.on("removed", () => {
       this.off("removed", callback)

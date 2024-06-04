@@ -1,8 +1,8 @@
 import { CanvasEvents, FabricObject, Point, util } from "fabric"
-import type Handler from "./Handler"
+import { Handler } from "./Handler"
 import { check } from "../utils/check"
 
-class ZoomHandler {
+export class ZoomHandler {
   handler: Handler
 
   constructor(handler: Handler) {
@@ -166,5 +166,3 @@ class ZoomHandler {
     return scale * this.handler.zoomOptions.fitRatio
   }
 }
-
-export default ZoomHandler

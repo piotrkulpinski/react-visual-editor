@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { CanvasEvents, FabricObject } from "fabric"
-import type Handler from "./Handler"
+import { Handler } from "./Handler"
 
-class CloneHandler {
+export class CloneHandler {
   handler: Handler
 
   private originalObject: FabricObject | undefined = undefined
@@ -62,5 +61,3 @@ class CloneHandler {
     this.originalObject = undefined
   }
 }
-
-export default CloneHandler

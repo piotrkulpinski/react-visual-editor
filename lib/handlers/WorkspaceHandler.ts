@@ -1,7 +1,7 @@
 import { Rect } from "fabric"
-import type Handler from "./Handler"
+import { Handler } from "./Handler"
 
-class WorkspaceHandler {
+export class WorkspaceHandler {
   handler: Handler
 
   constructor(handler: Handler) {
@@ -39,5 +39,3 @@ class WorkspaceHandler {
     this.handler.canvas.requestRenderAll()
   }
 }
-
-export default WorkspaceHandler

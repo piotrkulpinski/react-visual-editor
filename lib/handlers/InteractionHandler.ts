@@ -1,8 +1,8 @@
 import { CanvasEvents, FabricObject, Point, TPointerEvent } from "fabric"
 import { InteractionMode } from "../utils/types"
-import type Handler from "./Handler"
+import { Handler } from "./Handler"
 
-class InteractionHandler {
+export class InteractionHandler {
   handler: Handler
 
   /**
@@ -121,5 +121,3 @@ class InteractionHandler {
     this.handler.canvas.requestRenderAll()
   }
 }
-
-export default InteractionHandler

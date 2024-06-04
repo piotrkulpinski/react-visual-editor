@@ -1,7 +1,7 @@
 import { CanvasEvents, Point } from "fabric"
-import type Handler from "./Handler"
+import { Handler } from "./Handler"
 
-class AxisLockHandler {
+export class AxisLockHandler {
   handler: Handler
 
   /**
@@ -51,5 +51,3 @@ class AxisLockHandler {
     }
   }
 }
-
-export default AxisLockHandler

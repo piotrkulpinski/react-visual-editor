@@ -1,6 +1,6 @@
 import { util } from "fabric"
 import type { HighlightRect } from "../utils/types"
-import type Handler from "./Handler"
+import { Handler } from "./Handler"
 
 type RulerDrawOptions = {
   isHorizontal: boolean
@@ -8,7 +8,7 @@ type RulerDrawOptions = {
   startCalibration: number
 }
 
-class RulerHandler {
+export class RulerHandler {
   handler: Handler
 
   // public tempGuideLine?: GuideLine
@@ -459,5 +459,3 @@ class RulerHandler {
     return this.handler.canvas.getZoom()
   }
 }
-
-export default RulerHandler

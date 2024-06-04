@@ -1,7 +1,7 @@
 import { CanvasEvents } from "fabric"
-import type Handler from "./Handler"
+import { Handler } from "./Handler"
 
-class HoverHandler {
+export class HoverHandler {
   handler: Handler
 
   constructor(handler: Handler) {
@@ -33,5 +33,3 @@ class HoverHandler {
     this.handler.canvas.renderAll()
   }
 }
-
-export default HoverHandler

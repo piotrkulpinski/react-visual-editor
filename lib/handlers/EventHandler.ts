@@ -1,13 +1,11 @@
 import type { CanvasEvents } from "fabric"
 import { InteractionMode } from "../utils/types"
-import type Handler from "./Handler"
+import { Handler } from "./Handler"
 
 /**
  * Event Handler Class
- * @author salgum1114
- * @class EventHandler
  */
-class EventHandler {
+export class EventHandler {
   handler: Handler
 
   /**
@@ -406,5 +404,3 @@ class EventHandler {
   //   this.handler.contextmenuHandler.hide()
   // }
 }
-
-export default EventHandler

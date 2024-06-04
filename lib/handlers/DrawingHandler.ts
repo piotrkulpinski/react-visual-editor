@@ -1,5 +1,5 @@
 import { Rect } from "../utils/types"
-import type Handler from "./Handler"
+import { Handler } from "./Handler"
 
 type DrawLineOptions = {
   left: number
@@ -39,7 +39,7 @@ type DrawMaskOptions = {
   backgroundColor: string
 }
 
-class DrawingHandler {
+export class DrawingHandler {
   handler: Handler
 
   /**
@@ -182,5 +182,3 @@ class DrawingHandler {
     return mergedLines
   }
 }
-
-export default DrawingHandler

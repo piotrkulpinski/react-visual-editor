@@ -1,8 +1,8 @@
 import { FabricObject, Rect, Textbox } from "fabric"
-import Handler from "./Handler"
+import { Handler } from "./Handler"
 import { getRandomColor } from "@curiousleaf/utils"
 
-class ObjectHandler {
+export class ObjectHandler {
   handler: Handler
 
   constructor(handler: Handler) {
@@ -45,5 +45,3 @@ class ObjectHandler {
     this.handler.canvas.requestRenderAll()
   }
 }
-
-export default ObjectHandler

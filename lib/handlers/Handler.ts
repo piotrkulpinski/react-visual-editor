@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import hotkeys from "hotkeys-js"
 import { debounce } from "radash"
 import { type StoreApi, createStore } from "zustand"
@@ -10,26 +9,25 @@ import {
   type ZoomOptions,
   RulerOptions,
 } from "../utils/types"
-import EventHandler from "./EventHandler"
-import InteractionHandler from "./InteractionHandler"
-import WorkspaceHandler from "./WorkspaceHandler"
-import ZoomHandler from "./ZoomHandler"
-import HistoryHandler from "./HistoryHandler"
-import RulerHandler from "./RulerHandler"
-import CommandHandler from "./CommandHandler"
-import LayerHandler from "./LayerHandler"
-import GuideHandler from "./GuideHandler"
-import CloneHandler from "./CloneHandler"
-import DrawingHandler from "./DrawingHandler"
-import ObjectHandler from "./ObjectHandler"
-import ControlsHandler from "./ControlsHandler"
-import HoverHandler from "./HoverHandler"
-import ExportHandler from "./ExportHandler"
+import { EventHandler } from "./EventHandler"
+import { InteractionHandler } from "./InteractionHandler"
+import { WorkspaceHandler } from "./WorkspaceHandler"
+import { ZoomHandler } from "./ZoomHandler"
+import { HistoryHandler } from "./HistoryHandler"
+import { RulerHandler } from "./RulerHandler"
+import { CommandHandler } from "./CommandHandler"
+import { LayerHandler } from "./LayerHandler"
+import { GuideHandler } from "./GuideHandler"
+import { CloneHandler } from "./CloneHandler"
+import { DrawingHandler } from "./DrawingHandler"
+import { ObjectHandler } from "./ObjectHandler"
+import { ControlsHandler } from "./ControlsHandler"
+import { HoverHandler } from "./HoverHandler"
+import { ExportHandler } from "./ExportHandler"
+import { AxisLockHandler } from "./AxisLockHandler"
 import { Canvas, CanvasOptions, FabricObject } from "fabric"
 import { Rect } from "fabric"
-import AxisLockHandler from "./AxisLockHandler"
 import { check } from "../utils/check"
-import { generateId } from "../utils/helpers"
 
 export type HandlerStore = {
   zoom: number
@@ -40,7 +38,7 @@ export type HandlerStore = {
 /**
  * Main handler for Canvas
  */
-class Handler implements HandlerOptions {
+export class Handler implements HandlerOptions {
   public id: string
   public canvas: Canvas
   public canvasOptions?: Partial<CanvasOptions>
@@ -873,23 +871,10 @@ class Handler implements HandlerOptions {
     object: FabricObject,
     options?: { skipActive?: boolean; skipHistory?: boolean }
   ) {
-    // TODO: This in temporary solution until I find a better way to handle this
-    // If object is a selection, the objects inside the selection get incorrect position
-    if (check.isActiveSelection(object)) {
-      for (const obj of object.getObjects()) {
-        const clone = await obj.clone()
-        const { left, top } = clone.getBoundingRect()
+    const objects = check.isActiveSelection(object) ? object.getObjects() : [object]
 
-        clone.set({
-          id: generateId(),
-          left: left + object.left + object.width / 2,
-          top: top + object.top + object.height / 2,
-        })
-        this.canvas.add(clone)
-      }
-    } else {
-      object.set({ id: generateId() })
-      this.canvas.add(object)
+    for (const obj of objects) {
+      this.canvas.add(obj)
     }
 
     // Update active object and render canvas
@@ -1076,4 +1061,4 @@ class Handler implements HandlerOptions {
   // }
 }
 
-export default Handler
+// export default Handler

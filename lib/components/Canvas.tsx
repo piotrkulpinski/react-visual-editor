@@ -8,8 +8,8 @@ import {
   useImperativeHandle,
   useState,
 } from "react"
-import Handler from "../handlers/Handler"
 import { generateId } from "../utils/helpers"
+import { Handler } from "../handlers/Handler"
 
 type CanvasProps = HTMLAttributes<HTMLDivElement> & {
   options?: Partial<CanvasOptions>

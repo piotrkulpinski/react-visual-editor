@@ -1,13 +1,13 @@
 import {
-  ActiveSelection,
-  Canvas,
-  CanvasEvents,
-  FabricObject,
-  Group,
-  Point,
-  StaticCanvas,
+    ActiveSelection,
+    Canvas,
+    CanvasEvents,
+    FabricObject,
+    Group,
+    Point,
+    StaticCanvas,
 } from "fabric"
-import type Handler from "./Handler"
+import { Handler } from "./Handler"
 import { check } from "../utils/check"
 
 type VerticalLineCoords = {
@@ -37,7 +37,7 @@ type SnapParams = {
   snapYPoints: Set<number>
 }
 
-class GuideHandler {
+export class GuideHandler {
   handler: Handler
 
   private aligningLineMargin = 7
@@ -397,5 +397,3 @@ class GuideHandler {
     )
   }
 }
-
-export default GuideHandler

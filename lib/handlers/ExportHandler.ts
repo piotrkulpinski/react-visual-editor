@@ -1,8 +1,8 @@
 import { ImageFormat, util } from "fabric"
 import { saveAs } from "file-saver"
-import type Handler from "./Handler"
+import { Handler } from "./Handler"
 
-class ExportHandler {
+export class ExportHandler {
   handler: Handler
 
   constructor(handler: Handler) {
@@ -116,5 +116,3 @@ class ExportHandler {
     saveAs(data, `${Date.now()}.${extension}`)
   }
 }
-
-export default ExportHandler

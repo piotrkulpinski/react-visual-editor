@@ -1,12 +1,12 @@
 import { throttle } from "radash"
-import type Handler from "./Handler"
 import { FabricObject, util } from "fabric"
+import { Handler } from "./Handler"
 
-class HistoryHandler {
+export class HistoryHandler {
   handler: Handler
 
-  private historyStack: string[] = []
-  private currentStateIndex: number = -1
+  private history: string[] = []
+  private currentIndex: number = -1
   private isReplaying: boolean = false
   private readonly maxHistorySize: number = 100
   private readonly propertiesToInclude: (keyof FabricObject)[] = ["id"]
@@ -30,12 +30,12 @@ class HistoryHandler {
     if (this.isReplaying) return
 
     const currentState = this.getCurrentState()
-    const previousState = this.historyStack[this.currentStateIndex - 1]
+    const previousState = this.history[this.currentIndex - 1]
 
     // Check if the current state is different from the previous state
-    if (this.currentStateIndex === 0 || currentState !== previousState) {
-      this.historyStack = [...this.historyStack.slice(0, this.currentStateIndex + 1), currentState]
-      this.currentStateIndex++
+    if (this.currentIndex === 0 || currentState !== previousState) {
+      this.history = [...this.history.slice(0, this.currentIndex + 1), currentState]
+      this.currentIndex++
     }
 
     this.limitHistorySize()
@@ -45,34 +45,34 @@ class HistoryHandler {
    * Undo last action
    */
   public undo = throttle({ interval: 50 }, () => {
-    if (this.currentStateIndex <= 0) return
+    if (this.currentIndex <= 0) return
 
-    this.currentStateIndex--
-    this.replayState(this.historyStack[this.currentStateIndex])
+    this.currentIndex--
+    this.replayState(this.history[this.currentIndex])
   })
 
   /**
    * Redo last action
    */
   public redo = throttle({ interval: 50 }, () => {
-    if (this.currentStateIndex >= this.historyStack.length - 1) return
+    if (this.currentIndex >= this.history.length - 1) return
 
-    this.currentStateIndex++
-    this.replayState(this.historyStack[this.currentStateIndex])
+    this.currentIndex++
+    this.replayState(this.history[this.currentIndex])
   })
 
   /**
    * Check if undo is possible
    */
   public get canUndo(): boolean {
-    return this.currentStateIndex > 0
+    return this.currentIndex > 0
   }
 
   /**
    * Check if redo is possible
    */
   public get canRedo(): boolean {
-    return this.currentStateIndex < this.historyStack.length - 1
+    return this.currentIndex < this.history.length - 1
   }
 
   /**
@@ -88,9 +88,9 @@ class HistoryHandler {
    * Limit the size of the history stack to the maximum history size
    */
   private limitHistorySize(): void {
-    if (this.historyStack.length > this.maxHistorySize) {
-      this.historyStack = this.historyStack.slice(-this.maxHistorySize)
-      this.currentStateIndex = this.historyStack.length - 1
+    if (this.history.length > this.maxHistorySize) {
+      this.history = this.history.slice(-this.maxHistorySize)
+      this.currentIndex = this.history.length - 1
     }
   }
 
@@ -118,5 +118,3 @@ class HistoryHandler {
     })
   }
 }
-
-export default HistoryHandler

@@ -1,8 +1,8 @@
-import type Handler from "./Handler"
+import { Handler } from "./Handler"
 import { LayerCommand } from "../utils/types"
 import { throttle } from "radash"
 
-class LayerHandler {
+export class LayerHandler {
   handler: Handler
 
   constructor(handler: Handler) {
@@ -86,5 +86,3 @@ class LayerHandler {
     this.handler.historyHandler.saveState()
   }
 }
-
-export default LayerHandler

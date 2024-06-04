@@ -1,14 +1,14 @@
 import {
-  Control,
-  FabricObject,
-  Point,
-  TPointerEvent,
-  Textbox,
-  Transform,
-  TransformActionHandler,
-  controlsUtils,
+    Control,
+    FabricObject,
+    Point,
+    TPointerEvent,
+    Textbox,
+    Transform,
+    TransformActionHandler,
+    controlsUtils,
 } from "fabric"
-import Handler from "./Handler"
+import { Handler } from "./Handler"
 
 type RotateControl = {
   point: "tlr" | "trr" | "brr" | "blr"
@@ -38,7 +38,7 @@ const rotateIcon = (angle: number) => {
   return `url("data:image/svg+xml,<svg height='20' width='20' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'><g fill='none' transform='rotate(${angle} 16 16)'><path fill='white' d='M18.24 5.37C11.41 6.04 5.98 11.46 5.32 18.26L0 18.26L7.8 26L15.61 18.27L10.6 18.27C11.21 14.35 14.31 11.25 18.24 10.64L18.24 15.55L26 7.78L18.24 0L18.24 5.37Z'></path><path fill='black' d='M19.5463 6.61441C12.4063 6.68441 6.61632 12.4444 6.56632 19.5644L3.17632 19.5644L7.80632 24.1444L12.4363 19.5644L9.18632 19.5644C9.24632 13.8844 13.8563 9.28441 19.5463 9.22441L19.5463 12.3844L24.1463 7.78441L19.5463 3.16441L19.5463 6.61441Z'></path></g></svg>") 12 12,auto`
 }
 
-class ControlsHandler {
+export class ControlsHandler {
   handler: Handler
 
   constructor(handler: Handler) {
@@ -348,5 +348,3 @@ class ControlsHandler {
     }
   }
 }
-
-export default ControlsHandler

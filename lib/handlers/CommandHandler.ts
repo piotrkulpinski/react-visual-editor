@@ -1,7 +1,7 @@
 import { ActiveSelection, FabricObject } from "fabric"
-import type Handler from "./Handler"
+import { Handler } from "./Handler"
 
-class CommandHandler {
+export class CommandHandler {
   handler: Handler
 
   /**
@@ -182,5 +182,3 @@ class CommandHandler {
     this.handler.addObject(clone)
   }
 }
-
-export default CommandHandler
