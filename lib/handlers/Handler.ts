@@ -123,8 +123,6 @@ export class Handler implements HandlerOptions {
       width: 600,
       height: 400,
       fill: "#fff",
-      scaleX: 1,
-      scaleY: 1,
       hasBorders: false,
       hasControls: false,
       selectable: false,
@@ -193,13 +191,24 @@ export class Handler implements HandlerOptions {
     this.eventHandler = new EventHandler(this)
 
     // Resize Observer
-    this.resizeObserver = new ResizeObserver(
-      debounce({ delay: 25 }, () => {
-        this.workspaceHandler.resizeWorkspace()
-      })
-    )
-
+    this.resizeObserver = new ResizeObserver(debounce({ delay: 25 }, this.resizeCanvas.bind(this)))
     this.resizeObserver.observe(this.container)
+  }
+
+  /**
+   * Resize canvas to fit the container
+   */
+  public async resizeCanvas() {
+    if (!this.isReady()) return
+
+    const width = this.container.offsetWidth
+    const height = this.container.offsetHeight
+
+    this.canvas.setDimensions({ width, height })
+    this.canvas.setViewportTransform(this.canvas.viewportTransform)
+
+    // Zoom the canvas
+    this.zoomHandler.setZoomToFit(true)
   }
 
   // /**
@@ -864,16 +873,25 @@ export class Handler implements HandlerOptions {
   }
 
   /**
+   * Return a list of objects from the selection
+   * @param object - Fabric object
+   */
+  public getObjectsFromSelection(object?: FabricObject) {
+    if (!object) return []
+
+    return check.isActiveSelection(object) ? object.getObjects() : [object]
+  }
+
+  /**
    * Add object or selection to canvas
    * @param object - Fabric object to add
+   * @param options - Options
    */
-  public async addObject(
+  public addObject(
     object: FabricObject,
     options?: { skipActive?: boolean; skipHistory?: boolean }
   ) {
-    const objects = check.isActiveSelection(object) ? object.getObjects() : [object]
-
-    for (const obj of objects) {
+    for (const obj of this.getObjectsFromSelection(object)) {
       this.canvas.add(obj)
     }
 
@@ -888,14 +906,13 @@ export class Handler implements HandlerOptions {
   /**
    * Remove object or selection from canvas
    * @param object - Fabric object to remove
+   * @param options - Options
    */
   public removeObject(
     object: FabricObject,
     options?: { skipActive?: boolean; skipHistory?: boolean }
   ) {
-    const objects = check.isActiveSelection(object) ? object.getObjects() : [object]
-
-    for (const obj of objects) {
+    for (const obj of this.getObjectsFromSelection(object)) {
       this.canvas.remove(obj)
     }
 

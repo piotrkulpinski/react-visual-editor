@@ -1,4 +1,4 @@
-import { Rect } from "fabric"
+import { FabricObjectProps, Rect } from "fabric"
 import { Handler } from "./Handler"
 
 export class WorkspaceHandler {
@@ -10,32 +10,41 @@ export class WorkspaceHandler {
     const workspace = new Rect(this.handler.workspaceOptions)
 
     this.handler.workspace = workspace
+    this.handler.workspace.on("added", this.createClipPath.bind(this))
+    this.handler.workspace.on("modified", this.updateClipPath.bind(this))
+
     this.handler.canvas.add(workspace)
-    this.handler.canvas.renderAll()
+    this.handler.canvas.requestRenderAll()
     this.handler.zoomHandler.setZoomToFit(true)
   }
 
   /**
-   * Resize workspace to fit the container
+   * Set workspace options
+   * @param options
    */
-  public async resizeWorkspace() {
-    if (!this.handler.isReady()) {
-      return
-    }
+  public setOptions(options: Partial<FabricObjectProps>) {
+    this.handler.workspace.set(options)
+    this.handler.workspace.fire("modified")
 
-    const width = this.handler.container.offsetWidth
-    const height = this.handler.container.offsetHeight
-
-    this.handler.canvas.setDimensions({ width, height })
-    this.handler.canvas.setViewportTransform(this.handler.canvas.viewportTransform)
-
-    // Zoom the canvas
-    this.handler.zoomHandler.setZoomToFit(true)
-
-    // Do not display beyond the canvas
-    const clone = await this.handler.workspace.clone()
-
-    this.handler.canvas.clipPath = clone
     this.handler.canvas.requestRenderAll()
+    this.handler.zoomHandler.setZoomToFit(true)
+  }
+
+  /**
+   * Clip workspace to the canvas
+   */
+  private async createClipPath() {
+    this.handler.canvas.clipPath = await this.handler.workspace.clone()
+    this.handler.canvas.requestRenderAll()
+  }
+
+  /**
+   * Update the existing clipPath when workspace changes
+   */
+  private updateClipPath() {
+    if (this.handler.canvas.clipPath) {
+      this.handler.canvas.clipPath.set(this.handler.workspace)
+      this.handler.canvas.clipPath.setCoords()
+    }
   }
 }

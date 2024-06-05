@@ -55,28 +55,28 @@ export class LayerHandler {
    * Change the layer of the active object
    */
   private changeObjectLayer(command: LayerCommand, layer?: number) {
-    const activeObject = this.handler.canvas.getActiveObject()
+    const objects = this.handler.getObjectsFromSelection(this.handler.canvas.getActiveObject())
 
-    if (!activeObject) return
-
-    switch (command) {
-      case LayerCommand.FORWARD:
-        this.handler.canvas.bringObjectForward(activeObject)
-        break
-      case LayerCommand.BACKWARDS:
-        this.handler.canvas.sendObjectBackwards(activeObject)
-        break
-      case LayerCommand.FRONT:
-        this.handler.canvas.bringObjectToFront(activeObject)
-        break
-      case LayerCommand.BACK:
-        this.handler.canvas.sendObjectToBack(activeObject)
-        break
-      case LayerCommand.MOVE:
-        layer && this.handler.canvas.moveObjectTo(activeObject, layer)
-        break
-      default:
-        break
+    for (const object of objects) {
+      switch (command) {
+        case LayerCommand.FORWARD:
+          this.handler.canvas.bringObjectForward(object)
+          break
+        case LayerCommand.BACKWARDS:
+          this.handler.canvas.sendObjectBackwards(object)
+          break
+        case LayerCommand.FRONT:
+          this.handler.canvas.bringObjectToFront(object)
+          break
+        case LayerCommand.BACK:
+          this.handler.canvas.sendObjectToBack(object)
+          break
+        case LayerCommand.MOVE:
+          layer && this.handler.canvas.moveObjectTo(object, layer)
+          break
+        default:
+          break
+      }
     }
 
     this.handler.canvas.sendObjectToBack(this.handler.workspace)

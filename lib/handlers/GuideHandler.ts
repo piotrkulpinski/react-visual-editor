@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   ActiveSelection,
   Canvas,
@@ -40,6 +41,7 @@ export const guideStore = create<GuideState>((set) => ({
 export class GuideHandler {
   handler: Handler
 
+  private context: CanvasRenderingContext2D
   private aligningLineMargin = 7
   private aligningLineWidth = 1
   private aligningLineColor = "#F68066"
@@ -49,6 +51,7 @@ export class GuideHandler {
 
   constructor(handler: Handler) {
     this.handler = handler
+    this.context = handler.canvas.getTopContext()
 
     this.handler.canvas.on({
       "before:render": this.onBeforeRender.bind(this),
@@ -69,16 +72,14 @@ export class GuideHandler {
    * Before the render
    */
   public onBeforeRender(_opt: CanvasEvents["before:render"]) {
-    const context = this.handler.canvas.getSelectionContext()
-
-    this.handler.canvas.clearContext(context)
+    this.handler.canvas.clearContext(this.context)
   }
 
   /**
    * After the render
    */
-  public onAfterRender({ ctx }: CanvasEvents["after:render"]) {
-    if (!ctx || (!this.verticalLines.length && !this.horizontalLines.length)) {
+  public onAfterRender() {
+    if (!this.verticalLines.length && !this.horizontalLines.length) {
       return
     }
 
@@ -364,21 +365,20 @@ export class GuideHandler {
    * Draw a line between two points
    */
   private drawLine(x1: number, y1: number, x2: number, y2: number) {
-    const ctx = this.handler.canvas.getTopContext()
     const point1 = new Point(x1, y1).transform(this.handler.canvas.viewportTransform)
     const point2 = new Point(x2, y2).transform(this.handler.canvas.viewportTransform)
 
     // use origin canvas api to draw guideline
-    ctx.save()
-    ctx.lineWidth = this.aligningLineWidth
-    ctx.strokeStyle = this.aligningLineColor
-    ctx.beginPath()
+    this.context.save()
+    this.context.lineWidth = this.aligningLineWidth
+    this.context.strokeStyle = this.aligningLineColor
+    this.context.beginPath()
 
-    ctx.moveTo(point1.x, point1.y)
-    ctx.lineTo(point2.x, point2.y)
+    this.context.moveTo(point1.x, point1.y)
+    this.context.lineTo(point2.x, point2.y)
 
-    ctx.stroke()
-    ctx.restore()
+    this.context.stroke()
+    this.context.restore()
   }
 
   /**
