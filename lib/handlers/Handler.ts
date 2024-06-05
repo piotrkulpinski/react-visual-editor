@@ -32,13 +32,8 @@ import { check } from "../utils/check"
 export type HandlerStore = {
   // Zoom Handler
   zoom: number
-  // Ruler Handler
-  rulerEnabled: boolean
   // Interaction Handler
   interactionMode: InteractionMode
-  // History Handler
-  history: string[]
-  currentIndex: number
 }
 
 /**
@@ -110,10 +105,7 @@ export class Handler implements HandlerOptions {
     // Store
     this.store = createStore(() => ({
       zoom: this.canvas.getZoom(),
-      rulerEnabled: true,
       interactionMode: InteractionMode.SELECT,
-      history: [],
-      currentIndex: -1,
     }))
 
     // Zoom options

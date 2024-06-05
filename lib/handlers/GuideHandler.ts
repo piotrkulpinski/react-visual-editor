@@ -1,26 +1,16 @@
 import {
-    ActiveSelection,
-    Canvas,
-    CanvasEvents,
-    FabricObject,
-    Group,
-    Point,
-    StaticCanvas,
+  ActiveSelection,
+  Canvas,
+  CanvasEvents,
+  FabricObject,
+  Group,
+  Point,
+  StaticCanvas,
 } from "fabric"
 import { Handler } from "./Handler"
 import { check } from "../utils/check"
-
-type VerticalLineCoords = {
-  x: number
-  y1: number
-  y2: number
-}
-
-type HorizontalLineCoords = {
-  y: number
-  x1: number
-  x2: number
-}
+import { HorizontalLineCoords, VerticalLineCoords } from "../utils/types"
+import { create } from "zustand"
 
 type ACoordsWithCenter = NonNullable<FabricObject["aCoords"]> & {
   c: Point
@@ -36,6 +26,16 @@ type SnapParams = {
   // List of vertical snap points
   snapYPoints: Set<number>
 }
+
+export type GuideState = {
+  isGuideEnabled: boolean
+  toggleGuide: () => void
+}
+
+export const guideStore = create<GuideState>((set) => ({
+  isGuideEnabled: true,
+  toggleGuide: () => set(({ isGuideEnabled }) => ({ isGuideEnabled: !isGuideEnabled })),
+}))
 
 export class GuideHandler {
   handler: Handler
@@ -58,6 +58,14 @@ export class GuideHandler {
   }
 
   /**
+   * Toggle the state of the guide
+   */
+  public toggle() {
+    guideStore.getState().toggleGuide()
+    this.handler.canvas.requestRenderAll()
+  }
+
+  /**
    * Before the render
    */
   public onBeforeRender(_opt: CanvasEvents["before:render"]) {
@@ -74,14 +82,15 @@ export class GuideHandler {
       return
     }
 
+    const mergeLines = this.handler.drawingHandler.mergeLines
     const activeObject = this.handler.canvas.getActiveObject()
     const movingCoords = this.getObjectCoordsWithCenter(activeObject!)
 
-    for (const line of this.verticalLines) {
+    for (const line of mergeLines(this.verticalLines)) {
       this.drawVerticalLine(line, movingCoords)
     }
 
-    for (const line of this.horizontalLines) {
+    for (const line of mergeLines(this.horizontalLines)) {
       this.drawHorizontalLine(line, movingCoords)
     }
 
@@ -93,7 +102,9 @@ export class GuideHandler {
    * On object moving
    */
   public onObjectMoving({ e, target }: CanvasEvents["object:moving"]) {
-    // Disable the guidelines if the shift key is pressed or the object is not active
+    if (!guideStore.getState().isGuideEnabled) return
+
+    // Disable the guidelines if the meta key is pressed or the object is not active
     if (e.metaKey || !this.handler.canvas._currentTransform) return
 
     const activeObjects = this.handler.canvas.getActiveObjects()
@@ -212,6 +223,7 @@ export class GuideHandler {
               ...aCoords,
               c: this.calcCenterPointByACoords(aCoords),
             } as ACoordsWithCenter)
+
             this.verticalLines.push({ x, y1, y2 })
           }
         }

@@ -1,4 +1,4 @@
-import { Rect } from "../utils/types"
+import { HorizontalLineCoords, Rect, VerticalLineCoords } from "../utils/types"
 import { Handler } from "./Handler"
 
 type DrawLineOptions = {
@@ -146,39 +146,78 @@ export class DrawingHandler {
   }
 
   /**
-   * Merge line segments
+   * Merge rectangles segments
+   *
    * @param objects Array of Rectangles
    * @param isHorizontal
-   * @returns Merged array of Rectangles
    */
-  public mergeLines(objects: Rect[], isHorizontal: boolean) {
+  public mergeRects(objects: Rect[], isHorizontal: boolean) {
     const axis = isHorizontal ? "left" : "top"
     const length = isHorizontal ? "width" : "height"
 
     // Sort by size of axis first
     objects.sort((a, b) => a[axis] - b[axis])
 
-    const mergedLines = []
-    let currentLine = Object.assign({}, objects[0])
+    const mergedRects = []
+    let currentRect = Object.assign({}, objects[0])
 
     for (const object of objects) {
       const line = Object.assign({}, object)
 
       // If the current line segment intersects with the next line segment, merge the width
-      if (currentLine[axis] + currentLine[length] >= line[axis]) {
-        currentLine[length] =
-          Math.max(currentLine[axis] + currentLine[length], line[axis] + line[length]) -
-          currentLine[axis]
+      if (currentRect[axis] + currentRect[length] >= line[axis]) {
+        currentRect[length] =
+          Math.max(currentRect[axis] + currentRect[length], line[axis] + line[length]) -
+          currentRect[axis]
 
         // If the current line segment does not intersect with the next line segment, add the current line segment to the result array and update the current line segment to the next one
       } else {
-        mergedLines.push(currentLine)
-        currentLine = Object.assign({}, line)
+        mergedRects.push(currentRect)
+        currentRect = Object.assign({}, line)
       }
     }
 
     // Add to the array
-    mergedLines.push(currentLine)
+    mergedRects.push(currentRect)
+    return mergedRects
+  }
+
+  /**
+   * Merge overlapping lines
+   *
+   * @param lines Array of lines
+   */
+  public mergeLines<T extends VerticalLineCoords | HorizontalLineCoords>(lines: T[]) {
+    const mergedLines: T[] = []
+
+    lines.forEach((line) => {
+      if ("x" in line) {
+        // Vertical line
+        const existingLine = mergedLines.find(
+          (mergedLine) => "x" in mergedLine && mergedLine.x === line.x
+        ) as VerticalLineCoords | undefined
+
+        if (existingLine) {
+          existingLine.y1 = Math.min(existingLine.y1, line.y1)
+          existingLine.y2 = Math.max(existingLine.y2, line.y2)
+        } else {
+          mergedLines.push(line)
+        }
+      } else {
+        // Horizontal line
+        const existingLine = mergedLines.find(
+          (mergedLine) => "y" in mergedLine && mergedLine.y === line.y
+        ) as HorizontalLineCoords | undefined
+
+        if (existingLine) {
+          existingLine.x1 = Math.min(existingLine.x1, line.x1)
+          existingLine.x2 = Math.max(existingLine.x2, line.x2)
+        } else {
+          mergedLines.push(line)
+        }
+      }
+    })
+
     return mergedLines
   }
 }

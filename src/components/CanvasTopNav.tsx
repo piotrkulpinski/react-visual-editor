@@ -1,18 +1,18 @@
 import { Button, ButtonGroup, Tooltip, cx } from "@curiousleaf/design"
 import {
-    IconArrowBackUp,
-    IconArrowForwardUp,
-    IconCopy,
-    IconDownload,
-    IconLetterT,
-    IconLine,
-    IconRuler,
-    IconShape,
+  IconArrowBackUp,
+  IconArrowForwardUp,
+  IconCopy,
+  IconDownload,
+  IconLetterT,
+  IconLine,
+  IconRuler,
+  IconShape,
 } from "@tabler/icons-react"
 import type { HTMLAttributes } from "react"
 import { CanvasButton } from "./CanvasButton"
 import { Handler } from "../../lib/handlers/Handler"
-import { historyStore } from "../../lib"
+import { guideStore, historyStore, rulerStore } from "../../lib"
 import { useStore } from "zustand"
 
 type CanvasTopNavProps = HTMLAttributes<HTMLDivElement> & {
@@ -21,6 +21,8 @@ type CanvasTopNavProps = HTMLAttributes<HTMLDivElement> & {
 
 export const CanvasTopNav = ({ handler, className, ...props }: CanvasTopNavProps) => {
   const { canUndo, canRedo } = useStore(historyStore)
+  const { isRulerEnabled } = useStore(rulerStore)
+  const { isGuideEnabled } = useStore(guideStore)
 
   return (
     <div className={cx("size-full flex items-center", className)} {...props}>
@@ -54,8 +56,18 @@ export const CanvasTopNav = ({ handler, className, ...props }: CanvasTopNavProps
         </div>
 
         <div className="flex items-center gap-0.5 px-3 h-4">
-          <CanvasButton tooltip="Toggle Ruler" prefix={<IconRuler />} />
-          <CanvasButton tooltip="Toggle Guides" prefix={<IconLine />} />
+          <CanvasButton
+            tooltip="Toggle Ruler"
+            prefix={<IconRuler />}
+            isActive={isRulerEnabled}
+            onClick={() => handler.rulerHandler.toggle()}
+          />
+          <CanvasButton
+            tooltip="Toggle Guides"
+            prefix={<IconLine />}
+            isActive={isGuideEnabled}
+            onClick={() => handler.guideHandler.toggle()}
+          />
         </div>
       </div>
 

@@ -220,3 +220,15 @@ export type Rect = {
 export type HighlightRect = Rect & {
   skip?: "x" | "y"
 }
+
+export type VerticalLineCoords = {
+  x: number
+  y1: number
+  y2: number
+}
+
+export type HorizontalLineCoords = {
+  y: number
+  x1: number
+  x2: number
+}

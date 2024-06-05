@@ -26,7 +26,7 @@ export const CanvasButton = forwardRef<CanvasButtonElement, CanvasButtonProps>((
         size={size}
         theme={theme}
         variant={variant}
-        className={cx(isActive && "z-10 border-gray-300 bg-gray-50 shadow-inner", className)}
+        className={cx(isActive && "!border-gray-300 bg-gray-50 shadow-inner", className)}
         {...rest}
       />
     </Tooltip>

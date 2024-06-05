@@ -1,12 +1,23 @@
 import { util } from "fabric"
 import type { HighlightRect } from "../utils/types"
 import { Handler } from "./Handler"
+import { create } from "zustand"
 
 type RulerDrawOptions = {
   isHorizontal: boolean
   rulerLength: number
   startCalibration: number
 }
+
+export type RulerState = {
+  isRulerEnabled: boolean
+  toggleRuler: () => void
+}
+
+export const rulerStore = create<RulerState>((set) => ({
+  isRulerEnabled: true,
+  toggleRuler: () => set(({ isRulerEnabled }) => ({ isRulerEnabled: !isRulerEnabled })),
+}))
 
 export class RulerHandler {
   handler: Handler
@@ -59,9 +70,19 @@ export class RulerHandler {
   }
 
   /**
+   * Toggle the state of the ruler
+   */
+  public toggle() {
+    rulerStore.getState().toggleRuler()
+    this.handler.canvas.requestRenderAll()
+  }
+
+  /**
    * Render the vertical and horizontal rulers
    */
   private onRender() {
+    if (!rulerStore.getState().isRulerEnabled) return
+
     const { rulerOptions, canvas } = this.handler
     const { ruleSize, backgroundColor } = rulerOptions
     const { scaleX, scaleY, translateX, translateY } = util.qrDecompose(canvas.viewportTransform)
@@ -395,7 +416,7 @@ export class RulerHandler {
    */
   private calculateActiveObjects() {
     const activeObjects = this.handler.canvas.getActiveObjects()
-    const mergeLines = this.handler.drawingHandler.mergeLines
+    const mergeRects = this.handler.drawingHandler.mergeRects
 
     if (!activeObjects.length) {
       this.activeObjects = undefined
@@ -413,8 +434,8 @@ export class RulerHandler {
     })
 
     this.activeObjects = {
-      x: mergeLines(objects, true),
-      y: mergeLines(objects, false),
+      x: mergeRects(objects, true),
+      y: mergeRects(objects, false),
     }
   }
 
