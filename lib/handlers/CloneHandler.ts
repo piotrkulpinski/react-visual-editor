@@ -27,14 +27,14 @@ export class CloneHandler {
    */
   private async onKeyPressed(e: KeyboardEvent) {
     if (e.type === "keyup" && !e.altKey && this.cloneObject) {
-      this.handler.removeObject(this.cloneObject, { skipActive: true, skipHistory: true })
+      this.handler.removeObject(this.cloneObject)
       this.cloneObject = undefined
     }
 
     // If the alt key is pressed create a clone of the object
     if (e.type === "keydown" && e.altKey && !this.cloneObject && this.originalObject) {
       this.cloneObject = await this.originalObject.clone()
-      this.handler.addObject(this.cloneObject, { skipActive: true, skipHistory: true })
+      this.handler.addObject(this.cloneObject)
     }
   }
 
@@ -49,7 +49,7 @@ export class CloneHandler {
     // Check if the alt is pressed and clone object right away
     if (e.altKey && !this.cloneObject && this.originalObject) {
       this.cloneObject = await this.originalObject.clone()
-      this.handler.addObject(this.cloneObject, { skipActive: true, skipHistory: true })
+      this.handler.addObject(this.cloneObject)
     }
   }
 

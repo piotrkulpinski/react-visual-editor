@@ -1,12 +1,12 @@
 import {
-    Control,
-    FabricObject,
-    Point,
-    TPointerEvent,
-    Textbox,
-    Transform,
-    TransformActionHandler,
-    controlsUtils,
+  Control,
+  FabricObject,
+  Point,
+  TPointerEvent,
+  Textbox,
+  Transform,
+  TransformActionHandler,
+  controlsUtils,
 } from "fabric"
 import { Handler } from "./Handler"
 
@@ -244,7 +244,7 @@ export class ControlsHandler {
     return new Control({
       x,
       y,
-      actionName: "resize",
+      actionName: "scaling",
       actionHandler: controlsUtils.scalingEqually,
       cursorStyleHandler: controlsUtils.scaleCursorStyleHandler,
     })

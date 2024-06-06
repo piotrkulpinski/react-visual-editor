@@ -1,6 +1,8 @@
 import type { CanvasEvents } from "fabric"
 import { InteractionMode } from "../utils/types"
 import { Handler } from "./Handler"
+import { generateId } from "../utils"
+import { preciseRound } from "@curiousleaf/utils"
 
 /**
  * Event Handler Class
@@ -31,7 +33,11 @@ export class EventHandler {
    */
   public initialize() {
     this.handler.canvas.on({
+      "object:added": this.onObjectAdded.bind(this),
+      "object:removed": this.onObjectRemoved.bind(this),
       "object:modified": this.onObjectModified.bind(this),
+      "object:moving": this.onObjectChanging.bind(this),
+      "object:scaling": this.onObjectChanging.bind(this),
       "mouse:down:before": this.onMouseDownBefore.bind(this),
       "mouse:down": this.onMouseDown.bind(this),
       "mouse:up:before": this.onMouseUpBefore.bind(this),
@@ -48,7 +54,11 @@ export class EventHandler {
    */
   public destroy() {
     this.handler.canvas.off({
+      "object:added": this.onObjectAdded,
+      "object:removed": this.onObjectRemoved,
       "object:modified": this.onObjectModified,
+      "object:moving": this.onObjectChanging,
+      "object:scaling": this.onObjectChanging,
       "mouse:down:before": this.onMouseDownBefore,
       "mouse:down": this.onMouseDown,
       "mouse:up:before": this.onMouseUpBefore,
@@ -61,10 +71,47 @@ export class EventHandler {
   }
 
   /**
+   * Added event object
+   */
+  private onObjectAdded({ target }: CanvasEvents["object:added"]) {
+    !target.id && target.set({ id: generateId() })
+    this.handler.historyHandler.saveState()
+  }
+
+  /**
+   * Removed event object
+   */
+  private onObjectRemoved() {
+    this.handler.historyHandler.saveState()
+  }
+
+  /**
    * Modified event object
    */
   private onObjectModified() {
     this.handler.historyHandler.saveState()
+  }
+
+  /**
+   * Modified event object
+   */
+  private onObjectChanging({ target }: CanvasEvents["object:moving" | "object:scaling"]) {
+    target.set({
+      left: preciseRound(target.left, 0),
+      top: preciseRound(target.top, 0),
+      scaleX: preciseRound(target.scaleX),
+      scaleY: preciseRound(target.scaleY),
+    })
+    console.log({
+      left: target.left,
+      top: target.top,
+      scaleX: target.scaleX,
+      scaleY: target.scaleY,
+      width: target.width,
+      height: target.height,
+    })
+
+    target.setCoords()
   }
 
   /**

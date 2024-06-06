@@ -1,9 +1,4 @@
-import type {
-  Canvas as FabricCanvas,
-  Rect as FabricRect,
-  CanvasOptions,
-  FabricObject,
-} from "fabric"
+import type { Canvas as FabricCanvas, FabricObject } from "fabric"
 import { type Handler } from "../handlers/Handler"
 
 export type HandlerCallback = {
@@ -82,11 +77,6 @@ export type HandlerOptions = HandlerCallback & {
    * Canvas object
    */
   canvas: FabricCanvas
-
-  /**
-   * Canvas options
-   */
-  canvasOptions?: Partial<CanvasOptions>
 
   /**
    * Canvas parent element
@@ -190,7 +180,7 @@ export type RulerOptions = {
   highlightColor: string
 }
 
-export type WorkspaceOptions = Partial<FabricRect>
+export type WorkspaceOptions = Partial<FabricObject>
 
 export type HotkeyHandler = {
   key: string

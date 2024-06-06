@@ -68,10 +68,10 @@ export class HistoryHandler {
 
     const state = historyStore.getState()
     const currentState = this.getCurrentState()
-    const previousState = state.history[state.currentIndex - 1]
+    const previousState = state.history[state.currentIndex]
 
     // Check if the current state is different from the previous state
-    if (state.currentIndex === 0 || currentState !== previousState) {
+    if (!previousState || previousState !== currentState) {
       state.setHistory([...state.history.slice(0, state.currentIndex + 1), currentState])
       state.incrementCurrentIndex()
     }
@@ -84,7 +84,7 @@ export class HistoryHandler {
    */
   public undo = throttle({ interval: 50 }, () => {
     const state = historyStore.getState()
-    if (state.currentIndex <= 0) return
+    if (!state.canUndo) return
 
     state.decrementCurrentIndex()
     this.replayState(state.history[state.currentIndex - 1])
@@ -95,7 +95,7 @@ export class HistoryHandler {
    */
   public redo = throttle({ interval: 50 }, () => {
     const state = historyStore.getState()
-    if (state.currentIndex >= state.history.length - 1) return
+    if (!state.canRedo) return
 
     state.incrementCurrentIndex()
     this.replayState(state.history[state.currentIndex + 1])
@@ -107,6 +107,7 @@ export class HistoryHandler {
   private getCurrentState() {
     const rawJSON = this.handler.canvas.toDatalessJSON(this.propertiesToInclude)
     const objects = this.handler.getObjects(rawJSON.objects)
+
     return JSON.stringify(objects)
   }
 

@@ -19,19 +19,16 @@ export const Canvas = forwardRef<Handler, CanvasProps>(({ options, ...props }, r
   const containerRef = createRef<HTMLDivElement>()
   const [handler, setHandler] = useState<Handler>()
 
-  const canvasOptions = Object.assign(
-    {
+  useEffect(() => {
+    const canvas = new FabricCanvas("canvas", {
       width: 300,
       height: 150,
       defaultCursor: "default",
       preserveObjectStacking: true,
       controlsAboveOverlay: true,
-    },
-    options
-  )
-
-  useEffect(() => {
-    const canvas = new FabricCanvas("canvas", canvasOptions)
+      uniformScaling: false,
+      ...options,
+    })
 
     canvas.setDimensions({
       width: containerRef.current?.clientWidth ?? 0,
@@ -41,7 +38,6 @@ export const Canvas = forwardRef<Handler, CanvasProps>(({ options, ...props }, r
     const handlerInstance = new Handler({
       id: generateId(),
       canvas,
-      canvasOptions,
       container: containerRef.current as HTMLDivElement,
     })
 

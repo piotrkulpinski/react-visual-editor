@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import hotkeys from "hotkeys-js"
 import { debounce } from "radash"
 import { type StoreApi, createStore } from "zustand"
@@ -18,14 +19,14 @@ import { RulerHandler } from "./RulerHandler"
 import { CommandHandler } from "./CommandHandler"
 import { LayerHandler } from "./LayerHandler"
 import { GuideHandler } from "./GuideHandler"
-import { CloneHandler } from "./CloneHandler"
+// import { CloneHandler } from "./CloneHandler"
 import { DrawingHandler } from "./DrawingHandler"
 import { ObjectHandler } from "./ObjectHandler"
 import { ControlsHandler } from "./ControlsHandler"
 import { HoverHandler } from "./HoverHandler"
 import { ExportHandler } from "./ExportHandler"
 import { AxisLockHandler } from "./AxisLockHandler"
-import { Canvas, CanvasOptions, FabricObject } from "fabric"
+import { Canvas, FabricObject } from "fabric"
 import { Rect } from "fabric"
 import { check } from "../utils/check"
 
@@ -42,7 +43,6 @@ export type HandlerStore = {
 export class Handler implements HandlerOptions {
   public id: string
   public canvas: Canvas
-  public canvasOptions?: Partial<CanvasOptions>
   public container: HTMLDivElement
   public store: StoreApi<HandlerStore>
   public workspace!: Rect
@@ -81,7 +81,7 @@ export class Handler implements HandlerOptions {
   public layerHandler: LayerHandler
   public rulerHandler: RulerHandler
   public guideHandler: GuideHandler
-  public cloneHandler: CloneHandler
+  // public cloneHandler: CloneHandler
   public axisLockHandler: AxisLockHandler
   public objectHandler: ObjectHandler
   public controlsHandler: ControlsHandler
@@ -100,7 +100,6 @@ export class Handler implements HandlerOptions {
     this.id = options.id
     this.canvas = options.canvas
     this.container = options.container
-    this.canvasOptions = options.canvasOptions
 
     // Store
     this.store = createStore(() => ({
@@ -123,6 +122,7 @@ export class Handler implements HandlerOptions {
       width: 600,
       height: 400,
       fill: "#fff",
+      strokeWidth: 0,
       hasBorders: false,
       hasControls: false,
       selectable: false,
@@ -177,7 +177,7 @@ export class Handler implements HandlerOptions {
     this.layerHandler = new LayerHandler(this)
     this.rulerHandler = new RulerHandler(this)
     this.guideHandler = new GuideHandler(this)
-    this.cloneHandler = new CloneHandler(this)
+    // this.cloneHandler = new CloneHandler(this)
     this.axisLockHandler = new AxisLockHandler(this)
     this.objectHandler = new ObjectHandler(this)
     this.controlsHandler = new ControlsHandler(this)
@@ -887,20 +887,14 @@ export class Handler implements HandlerOptions {
    * @param object - Fabric object to add
    * @param options - Options
    */
-  public addObject(
-    object: FabricObject,
-    options?: { skipActive?: boolean; skipHistory?: boolean }
-  ) {
+  public addObject(object: FabricObject) {
     for (const obj of this.getObjectsFromSelection(object)) {
       this.canvas.add(obj)
     }
 
     // Update active object and render canvas
-    !options?.skipActive && this.canvas.setActiveObject(object)
+    this.canvas.setActiveObject(object)
     this.canvas.requestRenderAll()
-
-    // Save history action
-    !options?.skipHistory && this.historyHandler.saveState()
   }
 
   /**
@@ -908,20 +902,14 @@ export class Handler implements HandlerOptions {
    * @param object - Fabric object to remove
    * @param options - Options
    */
-  public removeObject(
-    object: FabricObject,
-    options?: { skipActive?: boolean; skipHistory?: boolean }
-  ) {
+  public removeObject(object: FabricObject) {
     for (const obj of this.getObjectsFromSelection(object)) {
       this.canvas.remove(obj)
     }
 
     // Update active object and render canvas
-    !options?.skipActive && this.canvas.discardActiveObject()
+    this.canvas.discardActiveObject()
     this.canvas.requestRenderAll()
-
-    // Save history action
-    !options?.skipHistory && this.historyHandler.saveState()
   }
 
   /**
