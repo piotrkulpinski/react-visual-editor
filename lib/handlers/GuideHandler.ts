@@ -98,8 +98,8 @@ export class GuideHandler {
   private onObjectMoving({ e, target }: CanvasEvents["object:moving"]) {
     if (!this.isSnapingEnabled(e)) return
 
-    const objects = this.getObjectSiblings(target)
-    this.traversAllObjects(target, objects)
+    // Calculate the snap guidelines
+    this.calculateMovingGuidelines(target)
   }
 
   /**
@@ -157,20 +157,22 @@ export class GuideHandler {
   }
 
   /**
-   * Traverse all objects and find the snap point
+   * Determine horizontal and vertical snap guidelines for the moving object
+   * @param object - The active object
    */
-  private traversAllObjects(activeObject: FabricObject, canvasObjects: FabricObject[]) {
-    const activeCoords = this.getCoordsWithCenter(activeObject, true)
-    const snapCoords = this.getCoordsWithCenter(activeObject)
+  private calculateMovingGuidelines(object: FabricObject) {
+    const siblings = this.getObjectSiblings(object)
+    const activeCoords = this.getCoordsWithCenter(object, true)
+    const snapCoords = this.getCoordsWithCenter(object)
 
-    for (const object of canvasObjects) {
-      const objCoords = this.getCoordsWithCenter(object)
+    for (const sibling of siblings) {
+      const siblingCoords = this.getCoordsWithCenter(sibling)
 
       for (const [aKey, { x: activeX, y: activeY }] of getObjectEntries(activeCoords)) {
-        for (const [key, { x, y }] of getObjectEntries(objCoords)) {
+        for (const [key, { x, y }] of getObjectEntries(siblingCoords)) {
           // Horizontal snap
           if (this.isInRange(activeY, y)) {
-            const coords = this.calcLineCoords(x, snapCoords[aKey].x, object.width, key === "c")
+            const coords = this.calcLineCoords(x, snapCoords[aKey].x, sibling.width, key === "c")
 
             this.horizontalLines.add({ y, ...coords })
             this.snapYPoints.add(activeCoords.c.y - activeY + y)
@@ -178,7 +180,7 @@ export class GuideHandler {
 
           // Vertical snap
           if (this.isInRange(activeX, x)) {
-            const coords = this.calcLineCoords(y, snapCoords[aKey].y, object.height, key === "c")
+            const coords = this.calcLineCoords(y, snapCoords[aKey].y, sibling.height, key === "c")
 
             this.verticalLines.add({ x, ...coords })
             this.snapXPoints.add(activeCoords.c.x - activeX + x)
@@ -187,7 +189,7 @@ export class GuideHandler {
       }
     }
 
-    this.snapCenterPoint(activeObject, activeCoords.c)
+    this.snapCenterPoint(object, activeCoords.c)
   }
 
   /**
@@ -252,13 +254,13 @@ export class GuideHandler {
   }
 
   /**
-   * Check if value1 and value2 are within the specified range for line alignment calculation.
+   * Check if two specified values are within the specified range for line alignment calculation.
    */
   private isInRange(value1: number, value2: number) {
-    return (
-      Math.abs(Math.round(value1) - Math.round(value2)) <=
-      this.aligningLineMargin / this.handler.canvas.getZoom()
-    )
+    const zoom = this.handler.canvas.getZoom()
+    const difference = Math.abs(Math.round(value1) - Math.round(value2))
+
+    return difference <= this.aligningLineMargin / zoom
   }
 
   /**
