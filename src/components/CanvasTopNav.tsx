@@ -2,6 +2,7 @@ import { Button, ButtonGroup, Tooltip, cx } from "@curiousleaf/design"
 import {
   IconArrowBackUp,
   IconArrowForwardUp,
+  IconBraces,
   IconCopy,
   IconDownload,
   IconLetterT,
@@ -72,12 +73,23 @@ export const CanvasTopNav = ({ handler, className, ...props }: CanvasTopNavProps
       </div>
 
       <ButtonGroup className="ml-auto">
+        <Tooltip tooltip="Copy JSON">
+          <Button
+            size="xs"
+            theme="secondary"
+            variant="outline"
+            onClick={() => handler.exportHandler.copyJSON()}
+          >
+            <IconBraces className="my-0.5" />
+          </Button>
+        </Tooltip>
+
         <Tooltip tooltip="Copy Image">
           <Button
             size="xs"
             theme="secondary"
             variant="outline"
-            onClick={() => handler.exportHandler.exportToClipboard()}
+            onClick={() => handler.exportHandler.copyImage()}
           >
             <IconCopy className="my-0.5" />
           </Button>

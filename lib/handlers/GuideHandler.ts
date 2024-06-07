@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
-  ActiveSelection,
-  Canvas,
-  CanvasEvents,
-  FabricObject,
-  Group,
-  Point,
-  StaticCanvas,
-  TPointerEvent,
+    ActiveSelection,
+    Canvas,
+    CanvasEvents,
+    FabricObject,
+    Group,
+    Point,
+    StaticCanvas,
+    TPointerEvent,
 } from "fabric"
 import { Handler } from "./Handler"
 import { check } from "../utils/check"
@@ -64,7 +63,7 @@ export class GuideHandler {
   /**
    * Before the render
    */
-  private onBeforeRender(_opt: CanvasEvents["before:render"]) {
+  private onBeforeRender() {
     this.handler.canvas.clearContext(this.context)
   }
 
@@ -78,18 +77,23 @@ export class GuideHandler {
 
     const mergeLines = this.handler.drawingHandler.mergeLines
     const activeObject = this.handler.canvas.getActiveObject()
-    const movingCoords = this.getCoordsWithCenter(activeObject!)
-
-    for (const line of mergeLines(this.verticalLines)) {
-      this.drawVerticalLine(line, movingCoords)
-    }
+    const movingCoords = this.getCoordsWithCenter(activeObject!, true)
 
     for (const line of mergeLines(this.horizontalLines)) {
       this.drawHorizontalLine(line, movingCoords)
     }
 
-    this.verticalLines.clear()
+    for (const line of mergeLines(this.verticalLines)) {
+      this.drawVerticalLine(line, movingCoords)
+    }
+
+    // Clear guide lines
     this.horizontalLines.clear()
+    this.verticalLines.clear()
+
+    // Clear snap points
+    this.snapXPoints.clear()
+    this.snapYPoints.clear()
   }
 
   /**
@@ -220,9 +224,6 @@ export class GuideHandler {
 
     // Auto snap to closest point
     object.setXY(new Point(closestX, closestY), "center", "center")
-
-    this.snapXPoints.clear()
-    this.snapYPoints.clear()
   }
 
   /**
@@ -326,30 +327,30 @@ export class GuideHandler {
   }
 
   /**
-   * Draw a vertical line
-   */
-  private drawVerticalLine(coords: VerticalLineCoords, movingCoords: ACenterCoords) {
-    if (!Object.values(movingCoords).some(({ x }) => Math.abs(x - coords.x) < 0.0001)) return
-
-    this.drawLine(
-      coords.x,
-      Math.min(coords.start, coords.end),
-      coords.x,
-      Math.max(coords.start, coords.end)
-    )
-  }
-
-  /**
    * Draw a horizontal line
    */
   private drawHorizontalLine(coords: HorizontalLineCoords, movingCoords: ACenterCoords) {
-    if (!Object.values(movingCoords).some(({ y }) => Math.abs(y - coords.y) < 0.0001)) return
+    if (!Object.values(movingCoords).some(({ y }) => Math.abs(y - coords.y) < 0.1)) return
 
     this.drawLine(
       Math.min(coords.start, coords.end),
       coords.y,
       Math.max(coords.start, coords.end),
       coords.y
+    )
+  }
+
+  /**
+   * Draw a vertical line
+   */
+  private drawVerticalLine(coords: VerticalLineCoords, movingCoords: ACenterCoords) {
+    if (!Object.values(movingCoords).some(({ x }) => Math.abs(x - coords.x) < 0.1)) return
+
+    this.drawLine(
+      coords.x,
+      Math.min(coords.start, coords.end),
+      coords.x,
+      Math.max(coords.start, coords.end)
     )
   }
 }
