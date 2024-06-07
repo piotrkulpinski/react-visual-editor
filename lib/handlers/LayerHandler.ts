@@ -1,6 +1,7 @@
 import { Handler } from "./Handler"
 import { LayerCommand } from "../utils/types"
 import { throttle } from "radash"
+import { FabricObject } from "fabric"
 
 export class LayerHandler {
   handler: Handler
@@ -9,53 +10,54 @@ export class LayerHandler {
     this.handler = handler
 
     this.handler.registerHotkeyHandlers(
-      { key: "cmd+]", handler: throttle({ interval: 100 }, this.bringForward.bind(this)) },
-      { key: "cmd+[", handler: throttle({ interval: 100 }, this.sendBackwards.bind(this)) },
-      { key: "]", handler: throttle({ interval: 100 }, this.bringToFront.bind(this)) },
-      { key: "[", handler: throttle({ interval: 100 }, this.sendToBack.bind(this)) }
+      { key: "cmd+]", handler: () => this.throttledHandler(this.bringForward) },
+      { key: "cmd+[", handler: () => this.throttledHandler(this.sendBackwards) },
+      { key: "]", handler: () => this.throttledHandler(this.bringToFront) },
+      { key: "[", handler: () => this.throttledHandler(this.sendToBack) }
     )
   }
 
   /**
    * Bring the active object forward
    */
-  public bringForward() {
-    this.changeObjectLayer(LayerCommand.FORWARD)
+  public bringForward(object?: FabricObject) {
+    this.changeObjectLayer(LayerCommand.FORWARD, object)
   }
 
   /**
    * Bring the active object forward
    */
-  public sendBackwards() {
-    this.changeObjectLayer(LayerCommand.BACKWARDS)
+  public sendBackwards(object?: FabricObject) {
+    this.changeObjectLayer(LayerCommand.BACKWARDS, object)
   }
 
   /**
    * Bring the active object to the front
    */
-  public bringToFront() {
-    this.changeObjectLayer(LayerCommand.FRONT)
+  public bringToFront(object?: FabricObject) {
+    this.changeObjectLayer(LayerCommand.FRONT, object)
   }
 
   /**
    * Send the active object to the back
    */
-  public sendToBack() {
-    this.changeObjectLayer(LayerCommand.BACK)
+  public sendToBack(object?: FabricObject) {
+    this.changeObjectLayer(LayerCommand.BACK, object)
   }
 
   /**
    * Move the active object to a specific layer
    */
-  public moveTo(layer: number) {
-    this.changeObjectLayer(LayerCommand.MOVE, layer)
+  public moveTo(layer: number, object?: FabricObject) {
+    this.changeObjectLayer(LayerCommand.MOVE, object, layer)
   }
 
   /**
    * Change the layer of the active object
    */
-  private changeObjectLayer(command: LayerCommand, layer?: number) {
-    const objects = this.handler.getObjectsFromSelection(this.handler.canvas.getActiveObject())
+  private changeObjectLayer(command: LayerCommand, object?: FabricObject, layer?: number) {
+    const activeObject = this.handler.canvas.getActiveObject()
+    const objects = object ? [object] : this.handler.getObjectsFromSelection(activeObject)
 
     for (const object of objects) {
       switch (command) {
@@ -77,6 +79,9 @@ export class LayerHandler {
         default:
           break
       }
+
+      // Fire modified event
+      this.handler.canvas.fire("object:modified", { target: object })
     }
 
     this.handler.canvas.sendObjectToBack(this.handler.workspace)
@@ -84,5 +89,14 @@ export class LayerHandler {
 
     // Save history action
     this.handler.historyHandler.saveState()
+  }
+
+  /**
+   * Throttled function handler
+   * @param fn Function to throttle
+   * @param interval Throttle interval
+   */
+  private throttledHandler(fn: () => void, interval = 100) {
+    return throttle({ interval }, fn.bind(this))()
   }
 }

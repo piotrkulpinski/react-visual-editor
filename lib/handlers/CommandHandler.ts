@@ -95,6 +95,7 @@ export class CommandHandler {
     if (objects.length) {
       const activeObject = new ActiveSelection(objects)
 
+      this.handler.canvas.discardActiveObject()
       this.handler.canvas.setActiveObject(activeObject)
       this.handler.canvas.requestRenderAll()
     }

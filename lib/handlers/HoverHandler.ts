@@ -1,4 +1,4 @@
-import { CanvasEvents } from "fabric"
+import { CanvasEvents, FabricObject } from "fabric"
 import { Handler } from "./Handler"
 
 export class HoverHandler {
@@ -16,12 +16,27 @@ export class HoverHandler {
   /**
    * Show the controls when the mouse is over the object
    */
-  private onMouseOver(e: CanvasEvents["mouse:over"]) {
-    if (e.target === this.handler.canvas._activeObject || !e.target?.selectable) {
+  private onMouseOver({ target }: CanvasEvents["mouse:over"]) {
+    this.hoverObject(target)
+  }
+
+  /**
+   * On mouse out, hide the controls
+   */
+  private onMouseOut() {
+    this.unhoverObject()
+  }
+
+  /**
+   * Show the minimal controls for the object
+   * @param object - Object to hover
+   */
+  public hoverObject(object?: FabricObject) {
+    if (!object?.selectable || object === this.handler.canvas._activeObject) {
       return
     }
 
-    e.target?._renderControls(this.handler.canvas.getContext(), {
+    object?._renderControls(this.handler.canvas.getContext(), {
       hasControls: false,
     })
   }
@@ -29,7 +44,7 @@ export class HoverHandler {
   /**
    * Re-render the canvas to hide the controls
    */
-  private onMouseOut() {
+  public unhoverObject() {
     this.handler.canvas.renderAll()
   }
 }

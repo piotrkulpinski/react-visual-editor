@@ -562,36 +562,6 @@ export class Handler implements HandlerOptions {
   // }
 
   // /**
-  //  * Select object
-  //  * @param {FabricObject} obj
-  //  * @param {boolean} [find]
-  //  */
-  // public select = (obj: FabricObject, find?: boolean) => {
-  //   let findObject = obj
-  //   if (find) {
-  //     findObject = this.find(obj)
-  //   }
-  //   if (findObject) {
-  //     this.canvas.discardActiveObject()
-  //     this.canvas.setActiveObject(findObject)
-  //     this.canvas.requestRenderAll()
-  //   }
-  // }
-
-  // /**
-  //  * Select by id
-  //  * @param {string} id
-  //  */
-  // public selectById = (id: string) => {
-  //   const findObject = this.findById(id)
-  //   if (findObject) {
-  //     this.canvas.discardActiveObject()
-  //     this.canvas.setActiveObject(findObject)
-  //     this.canvas.requestRenderAll()
-  //   }
-  // }
-
-  // /**
   //  * Select all
   //  * @returns
   //  */
@@ -782,89 +752,17 @@ export class Handler implements HandlerOptions {
   //   return activeSelection
   // }
 
-  // /**
-  //  * Bring forward
-  //  */
-  // public bringForward = () => {
-  //   const activeObject = this.canvas.getActiveObject() as FabricObject
-  //   if (activeObject) {
-  //     this.canvas.bringForward(activeObject)
-  //     if (!this.transactionHandler.active) {
-  //       this.transactionHandler.save("bringForward")
-  //     }
-  //     const { onModified } = this
-  //     if (onModified) {
-  //       onModified(activeObject)
-  //     }
-  //   }
-  // }
-
-  // /**
-  //  * Bring to front
-  //  */
-  // public bringToFront = () => {
-  //   const activeObject = this.canvas.getActiveObject() as FabricObject
-  //   if (activeObject) {
-  //     this.canvas.bringToFront(activeObject)
-  //     if (!this.transactionHandler.active) {
-  //       this.transactionHandler.save("bringToFront")
-  //     }
-  //     const { onModified } = this
-  //     if (onModified) {
-  //       onModified(activeObject)
-  //     }
-  //   }
-  // }
-
-  // /**
-  //  * Send backwards
-  //  * @returns
-  //  */
-  // public sendBackwards = () => {
-  //   const activeObject = this.canvas.getActiveObject() as FabricObject
-  //   if (activeObject) {
-  //     const firstObject = this.canvas.getObjects()[1] as FabricObject
-  //     if (firstObject.id === activeObject.id) {
-  //       return
-  //     }
-  //     if (!this.transactionHandler.active) {
-  //       this.transactionHandler.save("sendBackwards")
-  //     }
-  //     this.canvas.sendBackwards(activeObject)
-  //     const { onModified } = this
-  //     if (onModified) {
-  //       onModified(activeObject)
-  //     }
-  //   }
-  // }
-
-  // /**
-  //  * Send to back
-  //  */
-  // public sendToBack = () => {
-  //   const activeObject = this.canvas.getActiveObject() as FabricObject
-  //   if (activeObject) {
-  //     this.canvas.sendToBack(activeObject)
-  //     this.canvas.sendToBack(this.canvas.getObjects()[1])
-  //     if (!this.transactionHandler.active) {
-  //       this.transactionHandler.save("sendToBack")
-  //     }
-  //     const { onModified } = this
-  //     if (onModified) {
-  //       onModified(activeObject)
-  //     }
-  //   }
-  // }
-
   /**
    * Check if the canvas is ready
    */
   public isReady() {
-    return this.canvas.getObjects().length
+    return !!this.canvas.getObjects().length
   }
 
   /**
    * Return all objects except the workspace
+   * If objs is passed, filter out the workspace from the list
+   * @param objs - Object array
    */
   public getObjects(objs?: FabricObject[]) {
     const objects = objs || this.canvas.getObjects()
@@ -873,8 +771,15 @@ export class Handler implements HandlerOptions {
   }
 
   /**
+   * Return an object by id
+   */
+  public getObjectById(id: string) {
+    return this.canvas.getObjects().find((obj) => obj.id === id)
+  }
+
+  /**
    * Return a list of objects from the selection
-   * @param object - Fabric object
+   * @param object - Object
    */
   public getObjectsFromSelection(object?: FabricObject) {
     if (!object) return []
@@ -884,8 +789,7 @@ export class Handler implements HandlerOptions {
 
   /**
    * Add object or selection to canvas
-   * @param object - Fabric object to add
-   * @param options - Options
+   * @param object - Object to add
    */
   public addObject(object: FabricObject) {
     for (const obj of this.getObjectsFromSelection(object)) {
@@ -899,8 +803,7 @@ export class Handler implements HandlerOptions {
 
   /**
    * Remove object or selection from canvas
-   * @param object - Fabric object to remove
-   * @param options - Options
+   * @param object - Object to remove
    */
   public removeObject(object: FabricObject) {
     for (const obj of this.getObjectsFromSelection(object)) {
@@ -910,6 +813,38 @@ export class Handler implements HandlerOptions {
     // Update active object and render canvas
     this.canvas.discardActiveObject()
     this.canvas.requestRenderAll()
+  }
+
+  /**
+   * Remove object from canvas by id
+   * @param id - Object id
+   */
+  public removeObjectById(id: string) {
+    const object = this.getObjectById(id)
+
+    object && this.removeObject(object)
+  }
+
+  /**
+   * Select object on canvas
+   * @param object - Object to select
+   */
+  public selectObject(object?: FabricObject) {
+    if (object) {
+      this.canvas.discardActiveObject()
+      this.canvas.setActiveObject(object)
+      this.canvas.requestRenderAll()
+    }
+  }
+
+  /**
+   * Select object by id on canvas
+   * @param id - Object id
+   */
+  public selectObjectById(id: string) {
+    const object = this.getObjectById(id)
+
+    object && this.selectObject(object)
   }
 
   /**
