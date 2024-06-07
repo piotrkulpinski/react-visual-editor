@@ -7,6 +7,7 @@ import {
   Group,
   Point,
   StaticCanvas,
+  TPointerEvent,
 } from "fabric"
 import { Handler } from "./Handler"
 import { check } from "../utils/check"
@@ -48,8 +49,7 @@ export class GuideHandler {
     this.handler.canvas.on({
       "before:render": this.onBeforeRender.bind(this),
       "after:render": this.onAfterRender.bind(this),
-      "object:moving": this.onObjectChanging.bind(this),
-      "object:scaling": this.onObjectChanging.bind(this),
+      "object:moving": this.onObjectMoving.bind(this),
     })
   }
 
@@ -95,15 +95,38 @@ export class GuideHandler {
   /**
    * On object moving
    */
-  private onObjectChanging({ e, target }: CanvasEvents["object:moving" | "object:scaling"]) {
-    if (!guideStore.getState().isGuideEnabled) return
+  private onObjectMoving({ e, target }: CanvasEvents["object:moving"]) {
+    if (!this.isSnapingEnabled(e)) return
 
-    // Disable the guidelines if the meta key is pressed or the object is not active
-    if (e.metaKey || !this.handler.canvas._currentTransform) return
+    const objects = this.getObjectSiblings(target)
+    this.traversAllObjects(target, objects)
+  }
 
+  /**
+   * Check if snaping is enabled
+   * @param e - The pointer event
+   */
+  private isSnapingEnabled(e: TPointerEvent) {
+    // Disable snaping if store is disabled
+    if (!guideStore.getState().isGuideEnabled) return false
+
+    // Disable snaping if the meta key is pressed
+    if (e.metaKey) return false
+
+    // Disable snaping if the object is not active
+    if (!this.handler.canvas._currentTransform) return false
+
+    return true
+  }
+
+  /**
+   * Find the siblings of the object
+   * @param object - The object to find the siblings for
+   */
+  private getObjectSiblings(object: FabricObject) {
     const activeObjects = this.handler.canvas.getActiveObjects()
-    const parentObjects = this.getParentObjects(target)
-    const canvasObjects: FabricObject[] = []
+    const parentObjects = this.getParentObjects(object)
+    const siblings: FabricObject[] = []
 
     const addObjects = (group: Group | Canvas | StaticCanvas | ActiveSelection) => {
       const objects = group.getObjects().filter((obj) => {
@@ -111,7 +134,7 @@ export class GuideHandler {
           return false
         }
 
-        if (check.isActiveSelection(obj) || (check.isCollection(obj) && obj === target.group)) {
+        if (check.isActiveSelection(obj) || (check.isCollection(obj) && obj === object.group)) {
           addObjects(obj)
           return false
         }
@@ -119,18 +142,18 @@ export class GuideHandler {
         return true
       })
 
-      canvasObjects.push(...objects)
+      siblings.push(...objects)
     }
 
     for (const parent of parentObjects) {
       if (check.isNativeGroup(parent)) {
-        canvasObjects.push(parent)
+        siblings.push(parent)
       }
 
       addObjects(parent)
     }
 
-    this.traversAllObjects(target, canvasObjects)
+    return siblings
   }
 
   /**
@@ -164,7 +187,7 @@ export class GuideHandler {
       }
     }
 
-    this.snap(activeObject, activeCoords.c)
+    this.snapCenterPoint(activeObject, activeCoords.c)
   }
 
   /**
@@ -182,9 +205,11 @@ export class GuideHandler {
   }
 
   /**
-   * Automatic adsorption object
+   * Snap the center point of the object to the closest point
+   * @param object - The object to snap
+   * @param objectCenter - The center point of the object
    */
-  private snap(object: FabricObject, objectCenter: Point) {
+  private snapCenterPoint(object: FabricObject, objectCenter: Point) {
     if (!this.snapXPoints.size && !this.snapYPoints.size) return
 
     // Find the closest snap points
