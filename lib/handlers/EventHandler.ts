@@ -102,14 +102,6 @@ export class EventHandler {
       scaleX: preciseRound(target.scaleX),
       scaleY: preciseRound(target.scaleY),
     })
-    console.log({
-      left: target.left,
-      top: target.top,
-      scaleX: target.scaleX,
-      scaleY: target.scaleY,
-      width: target.width,
-      height: target.height,
-    })
 
     target.setCoords()
   }

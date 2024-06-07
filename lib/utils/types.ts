@@ -213,12 +213,12 @@ export type HighlightRect = Rect & {
 
 export type VerticalLineCoords = {
   x: number
-  y1: number
-  y2: number
+  start: number
+  end: number
 }
 
 export type HorizontalLineCoords = {
   y: number
-  x1: number
-  x2: number
+  start: number
+  end: number
 }

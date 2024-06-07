@@ -12,20 +12,10 @@ import { Handler } from "./Handler"
 import { check } from "../utils/check"
 import { HorizontalLineCoords, VerticalLineCoords } from "../utils/types"
 import { create } from "zustand"
+import { getObjectEntries } from "../utils/helpers"
 
-type ACoordsWithCenter = NonNullable<FabricObject["aCoords"]> & {
+type ACenterCoords = NonNullable<FabricObject["aCoords"]> & {
   c: Point
-}
-
-type SnapParams = {
-  // Current activity object
-  activeObject: FabricObject
-  // Coordinates of the activity object
-  activeObjectCoords: ACoordsWithCenter
-  // List of horizontal snap points
-  snapXPoints: Set<number>
-  // List of vertical snap points
-  snapYPoints: Set<number>
 }
 
 export type GuideState = {
@@ -46,8 +36,10 @@ export class GuideHandler {
   private aligningLineWidth = 1
   private aligningLineColor = "#F68066"
 
-  private verticalLines: VerticalLineCoords[] = []
-  private horizontalLines: HorizontalLineCoords[] = []
+  private snapXPoints = new Set<number>()
+  private snapYPoints = new Set<number>()
+  private verticalLines = new Set<VerticalLineCoords>()
+  private horizontalLines = new Set<HorizontalLineCoords>()
 
   constructor(handler: Handler) {
     this.handler = handler
@@ -56,7 +48,8 @@ export class GuideHandler {
     this.handler.canvas.on({
       "before:render": this.onBeforeRender.bind(this),
       "after:render": this.onAfterRender.bind(this),
-      "object:moving": this.onObjectMoving.bind(this),
+      "object:moving": this.onObjectChanging.bind(this),
+      "object:scaling": this.onObjectChanging.bind(this),
     })
   }
 
@@ -71,21 +64,21 @@ export class GuideHandler {
   /**
    * Before the render
    */
-  public onBeforeRender(_opt: CanvasEvents["before:render"]) {
+  private onBeforeRender(_opt: CanvasEvents["before:render"]) {
     this.handler.canvas.clearContext(this.context)
   }
 
   /**
    * After the render
    */
-  public onAfterRender() {
-    if (!this.verticalLines.length && !this.horizontalLines.length) {
+  private onAfterRender() {
+    if (!this.verticalLines.size && !this.horizontalLines.size) {
       return
     }
 
     const mergeLines = this.handler.drawingHandler.mergeLines
     const activeObject = this.handler.canvas.getActiveObject()
-    const movingCoords = this.getObjectCoordsWithCenter(activeObject!)
+    const movingCoords = this.getCoordsWithCenter(activeObject!)
 
     for (const line of mergeLines(this.verticalLines)) {
       this.drawVerticalLine(line, movingCoords)
@@ -95,14 +88,14 @@ export class GuideHandler {
       this.drawHorizontalLine(line, movingCoords)
     }
 
-    this.verticalLines.length = 0
-    this.horizontalLines.length = 0
+    this.verticalLines.clear()
+    this.horizontalLines.clear()
   }
 
   /**
    * On object moving
    */
-  public onObjectMoving({ e, target }: CanvasEvents["object:moving"]) {
+  private onObjectChanging({ e, target }: CanvasEvents["object:moving" | "object:scaling"]) {
     if (!guideStore.getState().isGuideEnabled) return
 
     // Disable the guidelines if the meta key is pressed or the object is not active
@@ -144,118 +137,72 @@ export class GuideHandler {
    * Traverse all objects and find the snap point
    */
   private traversAllObjects(activeObject: FabricObject, canvasObjects: FabricObject[]) {
-    const activeObjectCoords = this.getObjectCoordsWithCenter(activeObject)
-    const snapXPoints = new Set<number>()
-    const snapYPoints = new Set<number>()
+    const activeCoords = this.getCoordsWithCenter(activeObject, true)
+    const snapCoords = this.getCoordsWithCenter(activeObject)
 
     for (const object of canvasObjects) {
-      const objCoords = this.getObjectCoordsWithCenter(object)
-      const { height, width } = this.getObjMaxWidthHeightByCoords(objCoords)
+      const objCoords = this.getCoordsWithCenter(object)
 
-      // Horizontal snap
-      for (const activeObjPoint of this.getKeys(activeObjectCoords)) {
-        const newCoords = object.angle !== 0 ? this.omitCoords(objCoords, true) : objCoords
+      for (const [aKey, { x: activeX, y: activeY }] of getObjectEntries(activeCoords)) {
+        for (const [key, { x, y }] of getObjectEntries(objCoords)) {
+          // Horizontal snap
+          if (this.isInRange(activeY, y)) {
+            const coords = this.calcLineCoords(x, snapCoords[aKey].x, object.width, key === "c")
 
-        const calcHorizontalLineCoords = (
-          objPoint: keyof ACoordsWithCenter,
-          activeCoords: ACoordsWithCenter
-        ) => {
-          if (objPoint === "c") {
-            return {
-              x1: Math.min(newCoords.c.x - width / 2, activeCoords[activeObjPoint].x),
-              x2: Math.max(newCoords.c.x + width / 2, activeCoords[activeObjPoint].x),
-            }
+            this.horizontalLines.add({ y, ...coords })
+            this.snapYPoints.add(activeCoords.c.y - activeY + y)
           }
 
-          return {
-            x1: Math.min(objCoords[objPoint].x, activeCoords[activeObjPoint].x),
-            x2: Math.max(objCoords[objPoint].x, activeCoords[activeObjPoint].x),
-          }
-        }
+          // Vertical snap
+          if (this.isInRange(activeX, x)) {
+            const coords = this.calcLineCoords(y, snapCoords[aKey].y, object.height, key === "c")
 
-        for (const objPoint of this.getKeys(newCoords)) {
-          if (this.isInRange(activeObjectCoords[activeObjPoint].y, objCoords[objPoint].y)) {
-            const y = objCoords[objPoint].y
-
-            const offset = activeObjectCoords[activeObjPoint].y - y
-            snapYPoints.add(activeObjectCoords.c.y - offset)
-
-            const aCoords = this.getCoords(activeObject)
-            const { x1, x2 } = calcHorizontalLineCoords(objPoint, {
-              ...aCoords,
-              c: this.calcCenterPointByACoords(aCoords),
-            } as ACoordsWithCenter)
-
-            this.horizontalLines.push({ y, x1, x2 })
-          }
-        }
-      }
-
-      // Vertical snap
-      for (const activeObjPoint of this.getKeys(activeObjectCoords)) {
-        const newCoords = object.angle !== 0 ? this.omitCoords(objCoords, false) : objCoords
-
-        const calcVerticalLineCoords = (
-          objPoint: keyof ACoordsWithCenter,
-          activeCoords: ACoordsWithCenter
-        ) => {
-          if (objPoint === "c") {
-            return {
-              y1: Math.min(newCoords.c.y - height / 2, activeCoords[activeObjPoint].y),
-              y2: Math.max(newCoords.c.y + height / 2, activeCoords[activeObjPoint].y),
-            }
-          }
-
-          return {
-            y1: Math.min(objCoords[objPoint].y, activeCoords[activeObjPoint].y),
-            y2: Math.max(objCoords[objPoint].y, activeCoords[activeObjPoint].y),
-          }
-        }
-
-        for (const objPoint of this.getKeys(newCoords)) {
-          if (this.isInRange(activeObjectCoords[activeObjPoint].x, objCoords[objPoint].x)) {
-            const x = objCoords[objPoint].x
-
-            const offset = activeObjectCoords[activeObjPoint].x - x
-            snapXPoints.add(activeObjectCoords.c.x - offset)
-
-            const aCoords = this.getCoords(activeObject)
-            const { y1, y2 } = calcVerticalLineCoords(objPoint, {
-              ...aCoords,
-              c: this.calcCenterPointByACoords(aCoords),
-            } as ACoordsWithCenter)
-
-            this.verticalLines.push({ x, y1, y2 })
+            this.verticalLines.add({ x, ...coords })
+            this.snapXPoints.add(activeCoords.c.x - activeX + x)
           }
         }
       }
     }
 
-    this.snap({ activeObject, activeObjectCoords, snapXPoints, snapYPoints })
+    this.snap(activeObject, activeCoords.c)
+  }
+
+  /**
+   * Calculate the line coordinates
+   * @param coord - The coordinate of the object
+   * @param activeCoord - The coordinate of the active object
+   * @param dimension - The dimension of the object
+   * @param isCenter - Whether the object is center
+   */
+  private calcLineCoords(coord: number, activeCoord: number, dimension: number, isCenter: boolean) {
+    const start = Math.min(coord - (isCenter ? dimension / 2 : 0), activeCoord)
+    const end = Math.max(coord + (isCenter ? dimension / 2 : 0), activeCoord)
+
+    return { start, end }
   }
 
   /**
    * Automatic adsorption object
    */
-  private snap({ activeObject, activeObjectCoords, snapXPoints, snapYPoints }: SnapParams) {
-    if (snapXPoints.size === 0 && snapYPoints.size === 0) return
+  private snap(object: FabricObject, objectCenter: Point) {
+    if (!this.snapXPoints.size && !this.snapYPoints.size) return
 
-    // auto snap nearest object, record all the snap points, and then find the nearest one
-    activeObject.setXY(
-      new Point(
-        this.sortPoints(snapXPoints, activeObjectCoords.c.x),
-        this.sortPoints(snapYPoints, activeObjectCoords.c.y)
-      ),
-      "center",
-      "center"
-    )
+    // Find the closest snap points
+    const closestX = this.sortPoints(this.snapXPoints, objectCenter.x)
+    const closestY = this.sortPoints(this.snapYPoints, objectCenter.y)
+
+    // Auto snap to closest point
+    object.setXY(new Point(closestX, closestY), "center", "center")
+
+    this.snapXPoints.clear()
+    this.snapYPoints.clear()
   }
 
   /**
-   * Get the nearest snap point
+   * Get the closest snap point
    */
   private sortPoints(list: Set<number>, originPoint: number) {
-    if (list.size === 0) {
+    if (!list.size) {
       return originPoint
     }
 
@@ -264,13 +211,6 @@ export class GuideHandler {
     )
 
     return sortedList[0]
-  }
-
-  /**
-   * Get the key names of the object
-   */
-  private getKeys<T extends object>(obj: T): (keyof T)[] {
-    return Object.keys(obj) as (keyof T)[]
   }
 
   /**
@@ -284,37 +224,6 @@ export class GuideHandler {
     }
 
     return target.parent ? [target.parent] : [this.handler.canvas]
-  }
-
-  /**
-   * Get the maximum width and height of the object based on the coordinates provided
-   */
-  private getObjMaxWidthHeightByCoords({ c, tl, tr }: ACoordsWithCenter) {
-    const width = Math.max(Math.abs(c.x - tl.x), Math.abs(c.x - tr.x)) * 2
-    const height = Math.max(Math.abs(c.y - tl.y), Math.abs(c.y - tr.y)) * 2
-
-    return { width, height }
-  }
-
-  /**
-   * When the object is rotated, certain coordinates need to be ignored.
-   * For example, for the horizontal guide lines, only the coordinates
-   * of the top and bottom edges are taken (referencing Figma).
-   */
-  private omitCoords(objCoords: ACoordsWithCenter, isHorizontal = false) {
-    const newCoords = objCoords
-    const axis = isHorizontal ? "x" : "y"
-
-    for (const key of this.getKeys(objCoords)) {
-      if (objCoords[key][axis] < newCoords.tl[axis]) {
-        newCoords[key] = objCoords[key]
-      }
-      if (objCoords[key][axis] > newCoords.tl[axis]) {
-        newCoords[key] = objCoords[key]
-      }
-    }
-
-    return newCoords
   }
 
   /**
@@ -339,26 +248,34 @@ export class GuideHandler {
    * fabric.Object.getCenterPoint will return the center point of the object calc by mouse moving & dragging distance.
    * calcCenterPointByACoords will return real center point of the object position.
    */
-  private calcCenterPointByACoords(coords: NonNullable<FabricObject["aCoords"]>): Point {
-    return new Point((coords.tl.x + coords.br.x) / 2, (coords.tl.y + coords.br.y) / 2)
+  private calcCenterPointByACoords({ tl, br }: NonNullable<FabricObject["aCoords"]>) {
+    return new Point((tl.x + br.x) / 2, (tl.y + br.y) / 2)
   }
 
   /**
-   * Get object coordinates with center point
+   * Calculates the coordinates of an object with its center point.
+   * @param object - The Fabric object to calculate coordinates for.
+   * @param [adjustForCenterOffset=false] - Whether to adjust the coordinates by subtracting the center offset.
+   * @returns The calculated coordinates with the center point.
    */
-  private getObjectCoordsWithCenter(object: FabricObject): ACoordsWithCenter {
-    const coords = this.getCoords(object)
-    const objectCenter = object.getCenterPoint()
-    const centerPoint = this.calcCenterPointByACoords(coords).subtract(objectCenter)
-    const newCoords = this.getKeys(coords).map((key) => coords[key].subtract(centerPoint))
+  private getCoordsWithCenter(object: FabricObject, adjustForCenterOffset = false) {
+    const { tl, tr, br, bl } = this.getCoords(object)
+    const objectCenter = object.getCenterPoint() // real center point
+    const snappedCenter = this.calcCenterPointByACoords({ tl, tr, br, bl }) // snapped center point
 
-    return {
-      tl: newCoords[0],
-      tr: newCoords[1],
-      br: newCoords[2],
-      bl: newCoords[3],
-      c: objectCenter,
+    if (adjustForCenterOffset) {
+      const centerOffset = snappedCenter.subtract(objectCenter)
+
+      return {
+        tl: tl.subtract(centerOffset),
+        tr: tr.subtract(centerOffset),
+        br: br.subtract(centerOffset),
+        bl: bl.subtract(centerOffset),
+        c: objectCenter,
+      }
     }
+
+    return { tl, tr, br, bl, c: snappedCenter }
   }
 
   /**
@@ -384,27 +301,27 @@ export class GuideHandler {
   /**
    * Draw a vertical line
    */
-  private drawVerticalLine(coords: VerticalLineCoords, movingCoords: ACoordsWithCenter) {
+  private drawVerticalLine(coords: VerticalLineCoords, movingCoords: ACenterCoords) {
     if (!Object.values(movingCoords).some(({ x }) => Math.abs(x - coords.x) < 0.0001)) return
 
     this.drawLine(
       coords.x,
-      Math.min(coords.y1, coords.y2),
+      Math.min(coords.start, coords.end),
       coords.x,
-      Math.max(coords.y1, coords.y2)
+      Math.max(coords.start, coords.end)
     )
   }
 
   /**
    * Draw a horizontal line
    */
-  private drawHorizontalLine(coords: HorizontalLineCoords, movingCoords: ACoordsWithCenter) {
+  private drawHorizontalLine(coords: HorizontalLineCoords, movingCoords: ACenterCoords) {
     if (!Object.values(movingCoords).some(({ y }) => Math.abs(y - coords.y) < 0.0001)) return
 
     this.drawLine(
-      Math.min(coords.x1, coords.x2),
+      Math.min(coords.start, coords.end),
       coords.y,
-      Math.max(coords.x1, coords.x2),
+      Math.max(coords.start, coords.end),
       coords.y
     )
   }

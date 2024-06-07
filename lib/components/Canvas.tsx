@@ -21,14 +21,12 @@ export const Canvas = forwardRef<Handler, CanvasProps>(({ options, ...props }, r
 
   useEffect(() => {
     const canvas = new FabricCanvas("canvas", {
-      width: 300,
-      height: 150,
       defaultCursor: "default",
       preserveObjectStacking: true,
       controlsAboveOverlay: true,
       uniformScaling: false,
       ...options,
-    })
+    } satisfies Partial<CanvasOptions>)
 
     canvas.setDimensions({
       width: containerRef.current?.clientWidth ?? 0,

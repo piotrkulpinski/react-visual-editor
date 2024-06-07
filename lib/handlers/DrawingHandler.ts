@@ -187,36 +187,23 @@ export class DrawingHandler {
    *
    * @param lines Array of lines
    */
-  public mergeLines<T extends VerticalLineCoords | HorizontalLineCoords>(lines: T[]) {
-    const mergedLines: T[] = []
+  public mergeLines<T extends VerticalLineCoords | HorizontalLineCoords>(lines: Set<T>): Set<T> {
+    const mergedLines = new Set<T>()
 
-    lines.forEach((line) => {
-      if ("x" in line) {
-        // Vertical line
-        const existingLine = mergedLines.find(
-          (mergedLine) => "x" in mergedLine && mergedLine.x === line.x
-        ) as VerticalLineCoords | undefined
+    for (const line of lines) {
+      const existingLine = [...mergedLines].find((mergedLine) =>
+        "x" in line
+          ? "x" in mergedLine && mergedLine.x === line.x
+          : "y" in mergedLine && mergedLine.y === line.y
+      )
 
-        if (existingLine) {
-          existingLine.y1 = Math.min(existingLine.y1, line.y1)
-          existingLine.y2 = Math.max(existingLine.y2, line.y2)
-        } else {
-          mergedLines.push(line)
-        }
+      if (existingLine) {
+        existingLine.start = Math.min(existingLine.start, line.start)
+        existingLine.end = Math.max(existingLine.end, line.end)
       } else {
-        // Horizontal line
-        const existingLine = mergedLines.find(
-          (mergedLine) => "y" in mergedLine && mergedLine.y === line.y
-        ) as HorizontalLineCoords | undefined
-
-        if (existingLine) {
-          existingLine.x1 = Math.min(existingLine.x1, line.x1)
-          existingLine.x2 = Math.max(existingLine.x2, line.x2)
-        } else {
-          mergedLines.push(line)
-        }
+        mergedLines.add(line)
       }
-    })
+    }
 
     return mergedLines
   }
