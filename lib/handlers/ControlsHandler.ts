@@ -49,9 +49,8 @@ export class ControlsHandler {
     FabricObject.ownDefaults.objectCaching = false
     FabricObject.ownDefaults.borderColor = "#5AF"
     FabricObject.ownDefaults.borderOpacityWhenMoving = 1
-    FabricObject.ownDefaults.borderScaleFactor = 1.5
     FabricObject.ownDefaults.cornerSize = 10
-    FabricObject.ownDefaults.cornerStyle = "rect"
+    FabricObject.ownDefaults.cornerStyle = "circle"
     FabricObject.ownDefaults.cornerColor = "#FFF"
     FabricObject.ownDefaults.cornerStrokeColor = "#5AF"
     FabricObject.ownDefaults.centeredScaling = false
@@ -214,8 +213,8 @@ export class ControlsHandler {
       y,
       offsetX,
       offsetY,
-      sizeX: 16,
-      sizeY: 16,
+      sizeX: 10,
+      sizeY: 10,
       render: () => {},
       actionName: "rotate",
 

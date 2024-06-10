@@ -830,7 +830,7 @@ export class Handler implements HandlerOptions {
    * @param object - Object to select
    */
   public selectObject(object?: FabricObject) {
-    if (object) {
+    if (object?.selectable) {
       this.canvas.discardActiveObject()
       this.canvas.setActiveObject(object)
       this.canvas.requestRenderAll()

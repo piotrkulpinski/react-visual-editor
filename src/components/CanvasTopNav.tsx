@@ -7,6 +7,8 @@ import {
   IconDownload,
   IconLetterT,
   IconLine,
+  IconLock,
+  IconLockOpen,
   IconRuler,
   IconShape,
 } from "@tabler/icons-react"
@@ -68,6 +70,21 @@ export const CanvasTopNav = ({ handler, className, ...props }: CanvasTopNavProps
             prefix={<IconLine />}
             isActive={isGuideEnabled}
             onClick={() => handler.guideHandler.toggle()}
+          />
+        </div>
+
+        <div className="flex items-center gap-0.5 px-3 h-4">
+          <CanvasButton
+            tooltip="Lock Object"
+            prefix={<IconLock />}
+            // isActive={isRulerEnabled}
+            onClick={() => handler.commandHandler.lock()}
+          />
+          <CanvasButton
+            tooltip="Toggle Guides"
+            prefix={<IconLockOpen />}
+            // isActive={isGuideEnabled}
+            onClick={() => handler.commandHandler.unlock()}
           />
         </div>
       </div>

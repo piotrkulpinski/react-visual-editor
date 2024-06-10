@@ -17,7 +17,7 @@ export class HoverHandler {
    * Show the controls when the mouse is over the object
    */
   private onMouseOver({ target }: CanvasEvents["mouse:over"]) {
-    this.hoverObject(target)
+    target?.selectable && this.hoverObject(target)
   }
 
   /**
@@ -32,7 +32,7 @@ export class HoverHandler {
    * @param object - Object to hover
    */
   public hoverObject(object?: FabricObject) {
-    if (!object?.selectable || object === this.handler.canvas._activeObject) {
+    if (object === this.handler.canvas._activeObject) {
       return
     }
 

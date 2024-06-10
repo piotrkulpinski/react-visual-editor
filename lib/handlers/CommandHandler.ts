@@ -18,41 +18,44 @@ export class CommandHandler {
     this.handler = handler
 
     this.handler.registerHotkeyHandlers(
-      { key: "cmd+x", handler: this.cut.bind(this) },
-      { key: "cmd+c", handler: this.copy.bind(this) },
-      { key: "cmd+v", handler: this.paste.bind(this) },
-      { key: "cmd+d", handler: this.duplicate.bind(this) },
-      { key: "cmd+a", handler: this.selectAll.bind(this) },
-      { key: "backspace, delete", handler: this.delete.bind(this) },
-      { key: "escape", handler: this.discard.bind(this) },
+      { key: "cmd+x", handler: () => this.cut.call(this) },
+      { key: "cmd+c", handler: () => this.copy.call(this) },
+      { key: "cmd+v", handler: () => this.paste.call(this) },
+      { key: "cmd+d", handler: () => this.duplicate.call(this) },
+      { key: "cmd+a", handler: () => this.selectAll.call(this) },
+      { key: "backspace, delete", handler: () => this.delete.call(this) },
+      { key: "escape", handler: () => this.discard.call(this) },
       { key: "*", handler: this.onMove.bind(this) }
     )
   }
 
   /**
-   * Cut the currently selected object to the clipboard
+   * Cut the object to the clipboard
+   * @param obj - The object to cut
    */
-  public async cut() {
-    await this.copy()
+  public async cut(obj?: FabricObject) {
+    await this.copy(obj)
     this.delete()
 
     this.isCut = true
   }
 
   /**
-   * Copy the currently selected object to the clipboard
+   * Copy the object to the clipboard
+   * @param obj - The object to copy
    */
-  public async copy() {
-    // clone what are you copying since you
+  public async copy(obj?: FabricObject) {
+    const object = obj ?? this.handler.canvas.getActiveObject()
+
+    // If there is no object, return
+    if (!object) return
+
+    // Clone what are you copying since you
     // may want copy and paste on different moment.
     // and you do not want the changes happened
     // later to reflect on the copy.
-    const activeObject = this.handler.canvas.getActiveObject()
-
-    if (activeObject) {
-      const clone = await activeObject.clone()
-      this.clipboard = clone
-    }
+    const clone = await object.clone()
+    this.clipboard = clone
   }
 
   /**
@@ -65,40 +68,47 @@ export class CommandHandler {
   }
 
   /**
-   * Duplicate the currently selected object
+   * Duplicate the object
+   * @param obj - The object to duplicate
    */
-  public async duplicate() {
-    const activeObject = this.handler.canvas.getActiveObject()
+  public async duplicate(obj?: FabricObject) {
+    const object = obj ?? this.handler.canvas.getActiveObject()
 
-    if (activeObject) {
-      await this.cloneObject(activeObject)
-    }
+    // If there is no object, return
+    if (!object) return
+
+    // Duplicate the object
+    await this.cloneObject(object)
   }
 
   /**
-   * Delete active objects
+   * Delete the object from the canvas
+   * @param obj - The object to delete
    */
-  public delete() {
-    const activeObject = this.handler.canvas.getActiveObject()
+  public delete(obj?: FabricObject) {
+    const object = obj ?? this.handler.canvas.getActiveObject()
 
-    if (activeObject) {
-      this.handler.removeObject(activeObject)
-    }
+    // If there is no object, return
+    if (!object) return
+
+    // Remove the object from the canvas
+    this.handler.removeObject(object)
   }
 
   /**
    * Select all objects
    */
   public selectAll() {
-    const objects = this.handler.getObjects()
+    const objects = this.handler.getObjects().filter((o) => o.selectable && o.visible)
 
-    if (objects.length) {
-      const activeObject = new ActiveSelection(objects)
+    // If there is no objects, return
+    if (!objects.length) return
 
-      this.handler.canvas.discardActiveObject()
-      this.handler.canvas.setActiveObject(activeObject)
-      this.handler.canvas.requestRenderAll()
-    }
+    const activeObject = new ActiveSelection(objects)
+
+    this.handler.canvas.discardActiveObject()
+    this.handler.canvas.setActiveObject(activeObject)
+    this.handler.canvas.requestRenderAll()
   }
 
   /**
@@ -114,18 +124,105 @@ export class CommandHandler {
    * @param direction - The direction to move the object
    * @param increment - The amount to move the object
    */
-  public move(direction: "left" | "top", increment: number) {
-    const activeObject = this.handler.canvas.getActiveObject()
+  public move(direction: "left" | "top", increment = 1) {
+    const object = this.handler.canvas.getActiveObject()
 
     // If there is no active object, return
-    if (!activeObject) return
+    if (!object) return
 
-    activeObject.set(direction, (activeObject[direction] ?? 0) + increment)
-    activeObject.setCoords()
+    if (
+      (direction === "left" && object.lockMovementX) ||
+      (direction === "top" && object.lockMovementY)
+    ) {
+      return
+    }
+
+    object.set(direction, (object[direction] ?? 0) + increment)
+    object.setCoords()
 
     this.handler.canvas.requestRenderAll()
-    this.handler.canvas.fire("object:modified", { target: activeObject })
-    this.handler.onModified?.(activeObject)
+    this.handler.canvas.fire("object:modified", { target: object })
+  }
+
+  /**
+   * Toggle the lock status of the object
+   * @param obj - The object to toggle the lock status
+   * @param status - The status to set the lock to
+   */
+  public toggleLock(obj?: FabricObject, status = true) {
+    const activeObject = this.handler.canvas.getActiveObject()
+    const object = obj ?? activeObject
+
+    // If there is no object, return
+    if (!object) return
+
+    // Lock the object
+    object.lockMovementX = status
+    object.lockMovementY = status
+    object.selectable = !status
+    object.hoverCursor = status ? "not-allowed" : "move"
+
+    if (status && activeObject === object) {
+      this.handler.canvas.discardActiveObject()
+    }
+
+    this.handler.canvas.requestRenderAll()
+    this.handler.canvas.fire("object:modified", { target: object })
+  }
+
+  /**
+   * Lock the object
+   * @param object - The object to lock
+   */
+  public lock(object?: FabricObject) {
+    this.toggleLock(object, true)
+  }
+
+  /**
+   * Unlock the object
+   * @param object - The object to unlock
+   */
+  public unlock(object?: FabricObject) {
+    this.toggleLock(object, false)
+  }
+
+  /**
+   * Toggle the visibility of the object
+   * @param obj - The object to toggle the visibility
+   * @param visible - The visibility status to set
+   */
+  public toggleVisibility = (obj?: FabricObject, visible = false) => {
+    const activeObject = this.handler.canvas.getActiveObject()
+    const object = obj ?? activeObject
+
+    // If there is no object, return
+    if (!object) return
+
+    // Lock the object
+    object.visible = visible
+
+    if (!visible && activeObject === object) {
+      this.handler.canvas.discardActiveObject()
+    }
+
+    this.handler.canvas.requestRenderAll()
+    this.handler.canvas.fire("object:modified", { target: object })
+  }
+
+  /**
+   * Show the object
+   * @param object - The object to show
+   */
+  public show(object?: FabricObject) {
+    this.toggleVisibility(object, true)
+  }
+
+  /**
+   * Hide the object
+   * @param object - The object to hide
+   */
+  public hide(object?: FabricObject) {
+    this.toggleVisibility(object, false)
   }
 
   /**

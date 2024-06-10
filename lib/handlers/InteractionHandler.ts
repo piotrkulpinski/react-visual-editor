@@ -61,7 +61,7 @@ export class InteractionHandler {
    * Selection created event
    */
   private onSelectionCreated({ selected }: CanvasEvents["selection:created"]) {
-    this.updateObjectSelection(selected)
+    this.updateObjectEvented(selected)
   }
 
   /**
@@ -90,26 +90,26 @@ export class InteractionHandler {
         break
     }
 
-    this.updateObjectSelection(this.handler.getObjects())
+    this.updateObjectEvented(this.handler.getObjects())
     this.handler.onInteraction?.(mode)
   }
 
   /**
-   * Update object selection
+   * Update object evented property
    *
    * @param objects - Fabric objects to update
    */
-  private updateObjectSelection(objects: FabricObject[]) {
+  private updateObjectEvented(objects: FabricObject[]) {
     const mode = this.handler.store.getState().interactionMode
 
     for (const object of objects) {
       switch (mode) {
         case InteractionMode.SELECT:
           object.hoverCursor = "move"
-          object.selectable = this.defaultSelection
+          object.evented = true
           break
         case InteractionMode.PAN:
-          object.selectable = false
+          object.evented = false
           break
       }
     }
